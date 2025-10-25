@@ -1,0 +1,71 @@
+========================================
+BOSS FIGHTER - CHROME EXTENSION GAME
+========================================
+
+🎮 QUICK INSTALLATION GUIDE 🎮
+
+Your extension is READY TO INSTALL!
+
+STEP 1: Open Chrome Extensions
+   → Open Google Chrome
+   → Go to: chrome://extensions/
+   → OR: Menu (⋮) → Extensions → Manage Extensions
+
+STEP 2: Enable Developer Mode
+   → Look for "Developer mode" toggle in the top-right
+   → Turn it ON
+
+STEP 3: Load the Extension
+   → Click "Load unpacked" button
+   → Navigate to and select this folder: "bonus fighter"
+   → Click "Select Folder"
+
+STEP 4: Start Playing!
+   → Look for the Boss Fighter icon in your extensions toolbar
+   → Click it to launch the game
+   → Defeat all 30 bosses!
+
+========================================
+CONTROLS:
+========================================
+
+MOVEMENT:  WASD or Arrow Keys
+AIMING:    Move your mouse cursor
+SHOOTING:  SPACEBAR or Click
+
+GOAL: Defeat all 30 unique bosses!
+
+========================================
+FEATURES:
+========================================
+
+✓ 30 Unique Boss Fights
+✓ Mouse-based aiming system
+✓ Progressive difficulty
+✓ Auto-save progress
+✓ Statistics tracking
+✓ Touch support for tablets
+✓ Level selection
+✓ Best time records
+
+========================================
+TROUBLESHOOTING:
+========================================
+
+Problem: Extension not showing
+Solution: Make sure you selected the "bonus fighter" folder
+         that contains manifest.json
+
+Problem: Icons not loading
+Solution: Check that icons/ folder contains 3 PNG files
+
+Problem: Game not responding
+Solution: Click on the game canvas to give it focus
+
+========================================
+
+For full documentation, see README.md
+For detailed setup, see SETUP.md
+
+Have fun defeating the bosses! 🎯
+
