@@ -25,7 +25,8 @@ class StorageManager {
       },
       quests: {
         completed: []  // Array of completed quest IDs
-      }
+      },
+      hasSeenTutorial: false  // Track if player has seen How to Play
     };
 
     // Initialize all 50 levels

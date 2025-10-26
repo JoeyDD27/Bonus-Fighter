@@ -349,7 +349,7 @@ class HTMLMenuManager {
     const healthBtn = document.getElementById('btn-upgrade-health');
     if (healthLevel < 11) {
       healthBtn.disabled = false;
-      document.getElementById('healthCost').textContent = `${costs[healthLevel]}💰`;
+      document.getElementById('healthCost').textContent = `-${costs[healthLevel]}💰`;  // Show cost with minus
     } else {
       healthBtn.disabled = true;
       healthBtn.textContent = 'MAX';
@@ -362,7 +362,7 @@ class HTMLMenuManager {
     const damageBtn = document.getElementById('btn-upgrade-damage');
     if (damageLevel < 11) {
       damageBtn.disabled = false;
-      document.getElementById('damageCost').textContent = `${costs[damageLevel]}💰`;
+      document.getElementById('damageCost').textContent = `-${costs[damageLevel]}💰`;  // Show cost with minus
     } else {
       damageBtn.disabled = true;
       damageBtn.textContent = 'MAX';

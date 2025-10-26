@@ -1,5 +1,5 @@
 // Initialize the game when page loads
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const canvas = document.getElementById('gameCanvas');
   const game = new GameEngine(canvas);
 
@@ -10,8 +10,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const htmlMenus = new HTMLMenuManager(game);
   game.htmlMenus = htmlMenus;
 
-  // Start with main menu visible
-  htmlMenus.showMainMenu();
+  // Check if new player (show tutorial)
+  const data = await game.storage.loadData();
+  if (!data.hasSeenTutorial) {
+    // New player - show How to Play
+    htmlMenus.showScreen('howToPlayScreen');
+    game.state = 'HOW_TO_PLAY';
+
+    // Mark tutorial as seen
+    data.hasSeenTutorial = true;
+    await game.storage.saveData(data);
+  } else {
+    // Returning player - show main menu
+    htmlMenus.showMainMenu();
+  }
 
   game.start();
 });
