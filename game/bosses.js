@@ -391,16 +391,23 @@ class BossFactory {
         health: 1838,  // 1050 * 1.75
         shootDelay: 60,
         shootPattern: function (player) {
-          // MASSIVE METEOR SHOWER - 15 bullets!
+          // MASSIVE METEOR SHOWER + AIMBOT
           const bullets = [];
-          for (let i = 0; i < 15; i++) {  // Increased from 10 to 15!
+          for (let i = 0; i < 15; i++) {
             const angle = Math.random() * Math.PI * 2;
             bullets.push(new Projectile(
               this.x, this.y, angle,
               2 + Math.random() * 3,
-              this.bulletSize, '#ff6b6b', 20, false
+              this.bulletSize, '#ff6b6b', 20, false, true
             ));
           }
+
+          // AIMBOT meteor (red, fast, big damage)
+          const dx = player.x - this.x;
+          const dy = player.y - this.y;
+          const aimAngle = Math.atan2(dy, dx);
+          bullets.push(new Projectile(this.x, this.y, aimAngle, 10, 19, '#ff0000', 22, false, true));
+
           return bullets;
         }
       },

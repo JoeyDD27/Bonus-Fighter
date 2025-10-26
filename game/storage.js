@@ -26,11 +26,15 @@ class StorageManager {
       quests: {
         completed: []  // Array of completed quest IDs
       },
-      hasSeenTutorial: false  // Track if player has seen How to Play
+      hasSeenTutorial: false,  // Track if player has seen How to Play
+      hasCompletedInGameTutorial: false,  // Track if player completed Level 1 tutorial
+      hasBoughtHealing: false,  // Track first healing ability purchase
+      hasBoughtSpecial: false,  // Track first special ability purchase
+      hasBoughtPassive: false   // Track first passive ability purchase
     };
 
-    // Initialize all 50 levels
-    for (let i = 1; i <= 50; i++) {
+    // Initialize all 42 levels
+    for (let i = 1; i <= 42; i++) {
       this.defaultData.levels[i] = {
         unlocked: i === 1,  // Only level 1 unlocked at start
         completed: false,  // No levels pre-beaten
@@ -133,7 +137,7 @@ class StorageManager {
       data.coins += coinsEarned;
 
       // Unlock next level
-      if (levelNumber < 50 && data.levels[levelNumber + 1]) {
+      if (levelNumber < 42 && data.levels[levelNumber + 1]) {
         data.levels[levelNumber + 1].unlocked = true;
       }
     }

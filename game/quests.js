@@ -27,9 +27,9 @@ class QuestManager {
       bossSlayer: {
         id: 'bossSlayer',
         name: 'Boss Slayer',
-        description: 'Complete all 50 levels',
+        description: 'Complete all 42 levels',
         reward: 500,
-        check: (data) => Object.values(data.levels).filter(l => l.completed).length >= 50
+        check: (data) => Object.values(data.levels).filter(l => l.completed).length >= 42
       },
 
       survivor: {
@@ -43,10 +43,10 @@ class QuestManager {
       notEvenClose: {
         id: 'notEvenClose',
         name: 'Not Even Close',
-        description: 'Complete all 50 levels without going below 50% HP',
-        reward: 800,  // Good reward for a hard challenge!
+        description: 'Complete all 42 levels without going below 50% HP',
+        reward: 800,
         check: (data) => {
-          for (let i = 1; i <= 50; i++) {
+          for (let i = 1; i <= 42; i++) {
             if (!data.levels[i]?.above50PercentCleared) return false;
           }
           return true;
@@ -97,9 +97,9 @@ class QuestManager {
       starCollector3: {
         id: 'starCollector3',
         name: 'Star Collector III',
-        description: 'Get all 50 stars',
+        description: 'Get all 42 stars',
         reward: 500,
-        check: (data) => this.countStars(data) >= 50
+        check: (data) => this.countStars(data) >= 42
       },
 
       // Untouchable Series (requires DIFFERENT levels)
@@ -162,24 +162,24 @@ class QuestManager {
       untouchable5: {
         id: 'untdouchable5',
         name: 'Untouchable V',
-        description: 'Beat all 30 levels without damage',
-        reward: 500,
+        description: 'Beat all 42 levels without damage',
+        reward: 800,
         check: (data) => {
           let count = 0;
-          for (let i = 1; i <= 30; i++) {
+          for (let i = 1; i <= 42; i++) {
             if (data.levels[i]?.noDamageCleared) count++;
           }
-          return count >= 30;
+          return count >= 42;
         }
       },
 
       untouchable6: {
         id: 'untouchable6',
         name: 'Untouchable VI',
-        description: 'Beat levels 40-50 without damage',
+        description: 'Beat levels 35-42 without damage',
         reward: 1000,
         check: (data) => {
-          for (let i = 40; i <= 50; i++) {
+          for (let i = 35; i <= 42; i++) {
             if (!data.levels[i]?.noDamageCleared) return false;
           }
           return true;
@@ -214,10 +214,10 @@ class QuestManager {
       speedDemon4: {
         id: 'speedDemon4',
         name: 'Speed Demon IV',
-        description: 'Beat all levels 40-50 in under 60s',
+        description: 'Beat all levels 35-42 in under 60s',
         reward: 600,
         check: (data) => {
-          for (let i = 40; i <= 50; i++) {
+          for (let i = 35; i <= 42; i++) {
             const time = data.levels[i]?.bestTime;
             if (!time || time >= 60) return false;
           }
@@ -296,10 +296,10 @@ class QuestManager {
       sharpshooter6: {
         id: 'sharpshooter6',
         name: 'Sharpshooter VI',
-        description: 'Get 100% accuracy in all levels 40-50',
+        description: 'Get 100% accuracy in all levels 35-42',
         reward: 1000,
         check: (data) => {
-          for (let i = 40; i <= 50; i++) {
+          for (let i = 35; i <= 42; i++) {
             if (!data.levels[i]?.bestAccuracy || data.levels[i].bestAccuracy < 100) return false;
           }
           return true;
@@ -310,7 +310,7 @@ class QuestManager {
 
   countStars(data) {
     let count = 0;
-    for (let i = 1; i <= 50; i++) {
+    for (let i = 1; i <= 42; i++) {
       if (data.levels[i]?.bestTime && data.levels[i].bestTime < 60) {
         count++;
       }
@@ -320,7 +320,7 @@ class QuestManager {
 
   countFastTimes(data, threshold) {
     let count = 0;
-    for (let i = 1; i <= 50; i++) {
+    for (let i = 1; i <= 42; i++) {
       if (data.levels[i]?.bestTime && data.levels[i].bestTime < threshold) {
         count++;
       }

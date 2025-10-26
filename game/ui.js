@@ -588,6 +588,38 @@ class UIManager {
     ctx.fillText('Click for menu', width / 2, height / 2 + 80);
   }
 
+  drawTutorialText(tutorialStep) {
+    const ctx = this.ctx;
+    const width = this.canvas.width;
+    const height = this.canvas.height;
+
+    // Big tutorial text (no dark overlay - can see game!)
+    ctx.textAlign = 'center';
+
+    const messages = {
+      1: 'Use WASD to Move',
+      2: 'Dodge Bullets!',
+      3: 'Use Your Mouse to Aim the Boss',
+      4: 'Use Q to Toggle Auto-Aim',
+      5: 'Good to Go Now!'
+    };
+
+    const text = messages[tutorialStep] || '';
+
+    // Smaller font for longer messages
+    const fontSize = text.length > 25 ? 38 : 52;
+
+    // Black outline for visibility
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 8;
+    ctx.font = `bold ${fontSize}px Arial`;
+    ctx.strokeText(text, width / 2, height / 2);
+
+    // Yellow text
+    ctx.fillStyle = '#ffd43b';
+    ctx.fillText(text, width / 2, height / 2);
+  }
+
   // Check which menu item was clicked based on mouse position
   getClickedMenuItem(mouseX, mouseY) {
     const width = this.canvas.width;

@@ -18,6 +18,13 @@ class GameEngine {
     this.grindBosses = [];
     this.grindBreakTimer = 0;
 
+    // Tutorial state
+    this.tutorialActive = false;
+    this.tutorialStep = 0;
+    this.tutorialHasMoved = false;
+    this.tutorialHasHitBoss = false;
+    this.tutorialHasToggledQ = false;
+
     // Game objects
     this.player = null;
     this.boss = null;
@@ -329,13 +336,26 @@ class GameEngine {
     }
   }
 
-  startLevel(level) {
+  async startLevel(level) {
     this.currentLevel = level;
     this.state = 'PLAYING';
     this.levelTime = 0;
-    this.startingHealth = 0;  // Track for no-damage quest
-    this.wentBelow50Percent = false;  // Track for Not Even Close quest
+    this.startingHealth = 0;
+    this.wentBelow50Percent = false;
     this.isGrindMode = false;
+
+    // Check if this is first time on level 1 (tutorial)
+    const data = await this.storage.loadData();
+    if (level === 1 && !data.hasCompletedInGameTutorial) {
+      this.tutorialActive = true;
+      this.tutorialStep = 1;
+      this.tutorialHasMoved = false;
+      this.tutorialHasHitBoss = false;
+      this.tutorialHasToggledQ = false;
+      console.log('Tutorial activated!');
+    } else {
+      this.tutorialActive = false;
+    }
 
     // Show canvas, hide HTML menus
     if (this.htmlMenus) {
@@ -433,8 +453,8 @@ class GameEngine {
 
     // Determine boss level range based on wave number (every 5 waves = new boss tier)
     const tier = Math.floor((this.grindWave - 1) / 5);
-    const minLevel = Math.min(tier * 5 + 1, 46); // Max starts at 46
-    const maxLevel = Math.min((tier + 1) * 5, 50); // Max ends at 50
+    const minLevel = Math.min(tier * 5 + 1, 38); // Max starts at 38
+    const maxLevel = Math.min((tier + 1) * 5, 42); // Max ends at 42
 
     console.log('Wave', this.grindWave, '- Boss range:', minLevel, 'to', maxLevel);
 
@@ -462,6 +482,51 @@ class GameEngine {
   }
 
   updatePlaying() {
+    // Tutorial logic
+    if (this.tutorialActive) {
+      // Step 1: Wait for movement
+      if (this.tutorialStep === 1) {
+        if (this.controls.keys['w'] || this.controls.keys['a'] || this.controls.keys['s'] || this.controls.keys['d'] ||
+          this.controls.keys['ArrowUp'] || this.controls.keys['ArrowLeft'] || this.controls.keys['ArrowDown'] || this.controls.keys['ArrowRight']) {
+          this.tutorialHasMoved = true;
+          this.tutorialStep = 2;
+          console.log('Player moved! Step 2');
+        }
+        return;  // Pause game until moved
+      }
+
+      // Step 2: Boss shoots one bullet, show dodge message
+      if (this.tutorialStep === 2) {
+        // Wait 2 seconds then progress
+        if (this.levelTime > 1) {
+          this.tutorialStep = 3;
+          console.log('Step 3: Aim at boss');
+        }
+      }
+
+      // Step 3: Wait for player to hit boss
+      if (this.tutorialStep === 3) {
+        if (this.tutorialHasHitBoss) {
+          this.tutorialStep = 4;
+          console.log('Hit boss! Step 4');
+        }
+      }
+
+      // Step 4: Wait for Q toggle
+      if (this.tutorialStep === 4) {
+        if (this.tutorialHasToggledQ) {
+          this.tutorialStep = 5;
+          setTimeout(async () => {
+            this.tutorialActive = false;
+            const data = await this.storage.loadData();
+            data.hasCompletedInGameTutorial = true;
+            await this.storage.saveData(data);
+            console.log('Tutorial complete!');
+          }, 2000);  // Show "Good to go" for 2 seconds
+        }
+      }
+    }
+
     // Update time
     this.levelTime += 1 / 60;
 
@@ -469,6 +534,9 @@ class GameEngine {
     if (this.controls.keys['q'] && this.menuCooldown === 0) {
       this.player.toggleAutoMode();
       this.menuCooldown = 15;
+      if (this.tutorialActive) {
+        this.tutorialHasToggledQ = true;
+      }
     }
 
     // Activate healing ability (E key) - blocked when petrified
@@ -506,8 +574,10 @@ class GameEngine {
     this.abilityManager.update(this.player, this.gameData.equippedAbilities || {});
 
     // Update player aim (with auto-aim if enabled, prioritize Cerberus heads)
-    const aimPos = this.controls.getAimPosition();
-    this.player.setAimPosition(aimPos.x, aimPos.y, this.boss, this.cerberusHeads);
+    if (this.player) {
+      const aimPos = this.controls.getAimPosition();
+      this.player.setAimPosition(aimPos.x, aimPos.y, this.boss, this.cerberusHeads);
+    }
 
     // Update player
     this.player.update(this.controls.keys, this.width, this.height);
@@ -683,11 +753,20 @@ class GameEngine {
         }
       }
 
-      // Boss shooting (unless disarmed)
-      if (!this.abilityManager.isDisarmActive()) {
-        const newBullets = this.boss.shoot(this.player);
-        if (newBullets && newBullets.length > 0) {
-          this.enemyBullets.push(...newBullets);
+      // Boss shooting (unless disarmed or tutorial step 1)
+      if (!this.abilityManager.isDisarmActive() && !(this.tutorialActive && this.tutorialStep === 1)) {
+        // Tutorial: Only shoot 1 bullet in step 2
+        if (this.tutorialActive && this.tutorialStep === 2 && this.enemyBullets.length === 0) {
+          const dx = this.player.x - this.boss.x;
+          const dy = this.player.y - this.boss.y;
+          const angle = Math.atan2(dy, dx);
+          this.enemyBullets.push(new Projectile(this.boss.x, this.boss.y, angle, 8, 12, '#ff6b6b', 10, false, true));
+        } else if (!this.tutorialActive || this.tutorialStep >= 3) {
+          // Normal shooting
+          const newBullets = this.boss.shoot(this.player);
+          if (newBullets && newBullets.length > 0) {
+            this.enemyBullets.push(...newBullets);
+          }
         }
 
         // Medusa burst fire ONCE when player first gets petrified
@@ -813,6 +892,11 @@ class GameEngine {
           this.boss.takeDamage(finalDamage, 'bullet');
           this.applyVampireHeal(finalDamage);
           hitBoss = true;
+
+          // Track for tutorial
+          if (this.tutorialActive && this.tutorialStep === 3) {
+            this.tutorialHasHitBoss = true;
+          }
         }
       }
 
@@ -1214,6 +1298,12 @@ class GameEngine {
     } else if (this.state === 'GRIND_BREAK') {
       this.ui.drawGrindBreakScreen(this.grindWave, this.grindBreakTimer);
     }
+
+    // Draw tutorial overlay
+    if (this.tutorialActive && this.tutorialStep > 0) {
+      this.ui.drawTutorialText(this.tutorialStep);
+    }
+
     // Victory and Defeat overlays are now HTML elements!
   }
 }

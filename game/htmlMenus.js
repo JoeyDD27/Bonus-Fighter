@@ -150,7 +150,7 @@ class HTMLMenuManager {
 
     // Update button text
     const nextBtn = document.getElementById('btn-victory-next');
-    if (level >= 50) {
+    if (level >= 42) {
       nextBtn.textContent = 'Menu';
     } else {
       nextBtn.textContent = 'Next Level';
@@ -173,7 +173,7 @@ class HTMLMenuManager {
 
   onVictoryNext() {
     this.hideVictoryOverlay();
-    if (this.game.currentLevel < 50) {
+    if (this.game.currentLevel < 42) {
       this.game.currentLevel++;
       if (this.game.gameData.levels[this.game.currentLevel].unlocked) {
         this.game.state = 'PLAYING';
@@ -222,7 +222,7 @@ class HTMLMenuManager {
   async onPlayClick() {
     // Find highest unlocked level
     let highestUnlocked = 1;
-    for (let i = 50; i >= 1; i--) {
+    for (let i = 42; i >= 1; i--) {
       if (this.game.gameData.levels[i] && this.game.gameData.levels[i].unlocked) {
         highestUnlocked = i;
         break;
@@ -275,6 +275,10 @@ class HTMLMenuManager {
         await this.game.storage.buyAbility(abilityId, cost);
         await this.game.storage.equipAbility(type, abilityId);
         this.game.gameData = await this.game.storage.loadData();
+
+        // Show tutorial message for first-time ability purchase
+        this.showAbilityTutorial(type);
+
         this.updateShopDisplay();
       } else {
         alert(`Not enough coins! Need ${cost} coins.`);
@@ -285,6 +289,59 @@ class HTMLMenuManager {
       this.game.gameData = await this.game.storage.loadData();
       this.updateShopDisplay();
     }
+  }
+
+  async showAbilityTutorial(type) {
+    const data = await this.game.storage.loadData();
+    let message = '';
+    let shouldShow = false;
+
+    if (type === 'healing' && !data.hasBoughtHealing) {
+      message = 'Use the E key in battle to use healing abilities';
+      data.hasBoughtHealing = true;
+      shouldShow = true;
+    } else if (type === 'special' && !data.hasBoughtSpecial) {
+      message = 'Use the R key in battle to use special abilities';
+      data.hasBoughtSpecial = true;
+      shouldShow = true;
+    } else if (type === 'passive' && !data.hasBoughtPassive) {
+      message = 'Passive abilities are activated at all times';
+      data.hasBoughtPassive = true;
+      shouldShow = true;
+    }
+
+    if (shouldShow) {
+      await this.game.storage.saveData(data);
+      this.showTutorialMessage(message);
+    }
+  }
+
+  showTutorialMessage(message) {
+    // Create overlay
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.9);
+      color: #ffd43b;
+      font-size: 32px;
+      font-weight: bold;
+      padding: 40px;
+      border-radius: 10px;
+      border: 3px solid #ffd43b;
+      z-index: 10000;
+      text-align: center;
+      max-width: 80%;
+    `;
+    overlay.textContent = message;
+    document.body.appendChild(overlay);
+
+    // Remove after 3 seconds
+    setTimeout(() => {
+      overlay.remove();
+    }, 3000);
   }
 
   async upgradeHealth() {
@@ -373,7 +430,7 @@ class HTMLMenuManager {
     const grid = document.getElementById('levelGrid');
     grid.innerHTML = '';
 
-    for (let i = 1; i <= 50; i++) {
+    for (let i = 1; i <= 42; i++) {
       const levelData = this.game.gameData.levels[i];
       const box = document.createElement('div');
       box.className = 'level-box';
@@ -407,7 +464,7 @@ class HTMLMenuManager {
     let html = `
       <div style="text-align: center; margin: 20px 0;">
         <p style="color: #51cf66; font-size: 16px;">
-          Completed: ${completed}/50 | Kills: ${stats.totalKills} | Deaths: ${stats.totalDeaths} | 
+          Completed: ${completed}/42 | Kills: ${stats.totalKills} | Deaths: ${stats.totalDeaths} | 
           Accuracy: ${stats.shotsFired > 0 ? ((stats.shotsHit / stats.shotsFired) * 100).toFixed(1) : 0}%
         </p>
         <p style="color: #ffd43b; font-size: 20px; margin-top: 10px;">
@@ -417,7 +474,7 @@ class HTMLMenuManager {
       <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; font-size: 13px;">
     `;
 
-    for (let i = 1; i <= 50; i++) {
+    for (let i = 1; i <= 42; i++) {
       const levelData = gameData.levels[i];
       const bestTime = levelData?.bestTime;
       const isCompleted = levelData?.completed || false;
@@ -481,7 +538,7 @@ class HTMLMenuManager {
 
           // Show which levels have stars
           const starLevels = [];
-          for (let i = 1; i <= 50; i++) {
+          for (let i = 1; i <= 42; i++) {
             if (gameData.levels[i]?.bestTime && gameData.levels[i].bestTime < 60) {
               starLevels.push(i);
             }
@@ -494,7 +551,7 @@ class HTMLMenuManager {
         } else if (questId.startsWith('untouchable')) {
           // Count DIFFERENT levels cleared without damage
           const noDamageLevels = [];
-          for (let i = 1; i <= 50; i++) {
+          for (let i = 1; i <= 42; i++) {
             if (gameData.levels[i]?.noDamageCleared) {
               noDamageLevels.push(i);
             }
@@ -520,7 +577,7 @@ class HTMLMenuManager {
           const threshold = questId === 'speedDemon1' ? 30 : questId === 'speedDemon2' ? 45 :
             questId === 'speedDemon3' ? 50 : 60;
 
-          for (let i = 1; i <= 50; i++) {
+          for (let i = 1; i <= 42; i++) {
             const time = gameData.levels[i]?.bestTime;
             if (time && time < threshold) {
               fastLevels.push(i);
@@ -548,7 +605,7 @@ class HTMLMenuManager {
               (questId.includes('3') ? 95 : 100) : 80;
 
           let count = 0;
-          for (let i = 1; i <= 50; i++) {
+          for (let i = 1; i <= 42; i++) {
             const acc = gameData.levels[i]?.bestAccuracy;
             if (acc >= threshold) {
               count++;
@@ -568,7 +625,7 @@ class HTMLMenuManager {
         } else if (questId === 'notEvenClose') {
           // Show Not Even Close progress
           const above50Levels = [];
-          for (let i = 1; i <= 50; i++) {
+          for (let i = 1; i <= 42; i++) {
             if (gameData.levels[i]?.above50PercentCleared) {
               above50Levels.push(i);
             }
