@@ -65,8 +65,14 @@ class HTMLMenuManager {
     const victoryShopBtn = document.getElementById('btn-victory-shop');
     if (victoryShopBtn) victoryShopBtn.addEventListener('click', () => this.onShopClick());
 
+    const victoryQuestsBtn = document.getElementById('btn-victory-quests');
+    if (victoryQuestsBtn) victoryQuestsBtn.addEventListener('click', () => this.onQuestsClick());
+
     const victoryRetryBtn = document.getElementById('btn-victory-retry');
     if (victoryRetryBtn) victoryRetryBtn.addEventListener('click', () => this.onRetry());
+
+    const victoryMenuBtn = document.getElementById('btn-victory-menu');
+    if (victoryMenuBtn) victoryMenuBtn.addEventListener('click', () => this.showMainMenu());
 
     // Defeat overlay buttons
     const defeatRetryBtn = document.getElementById('btn-defeat-retry');
@@ -74,6 +80,9 @@ class HTMLMenuManager {
 
     const defeatShopBtn = document.getElementById('btn-defeat-shop');
     if (defeatShopBtn) defeatShopBtn.addEventListener('click', () => this.onShopClick());
+
+    const defeatQuestsBtn = document.getElementById('btn-defeat-quests');
+    if (defeatQuestsBtn) defeatQuestsBtn.addEventListener('click', () => this.onQuestsClick());
 
     const defeatMenuBtn = document.getElementById('btn-defeat-menu');
     if (defeatMenuBtn) defeatMenuBtn.addEventListener('click', () => this.showMainMenu());
@@ -126,14 +135,15 @@ class HTMLMenuManager {
     document.getElementById('victoryLevel').textContent = `Level ${level} Complete`;
     document.getElementById('victoryTime').textContent = `Time: ${time.toFixed(2)}s`;
 
-    if (bestTime && time < bestTime) {
+    if (bestTime !== null && bestTime !== undefined && time < bestTime) {
       document.getElementById('victoryBest').textContent = 'New Best Time!';
       document.getElementById('victoryBest').style.color = '#ffd43b';
-    } else if (bestTime) {
+    } else if (bestTime !== null && bestTime !== undefined) {
       document.getElementById('victoryBest').textContent = `Best: ${bestTime.toFixed(2)}s`;
       document.getElementById('victoryBest').style.color = '#adb5bd';
     } else {
-      document.getElementById('victoryBest').textContent = '';
+      document.getElementById('victoryBest').textContent = 'First Clear!';
+      document.getElementById('victoryBest').style.color = '#51cf66';
     }
 
     document.getElementById('victoryCoins').textContent = coinsEarned > 0 ? `+${coinsEarned} 💰` : '';

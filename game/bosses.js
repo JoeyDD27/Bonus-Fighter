@@ -1259,31 +1259,27 @@ class BossFactory {
         name: 'Phoenix',
         size: 70,
         health: 12000,
-        shootDelay: 50,
+        shootDelay: 85,  // Even slower (was 70)
         maxPhases: 5,  // Revives once!
         shootPattern: function (player) {
-          // Fire rebirth patterns with BURN effect
+          // Fire rebirth patterns (fewer, slower bullets)
           const bullets = [];
-          const fireCount = 18 + this.phase * 4; // 22, 26, 30, 34, 38
+          const fireCount = 12 + this.phase * 3; // 15, 18, 21, 24, 27 (was 22-38)
 
           for (let i = 0; i < fireCount; i++) {
             const angle = (i / fireCount) * Math.PI * 2 + this.behaviorTimer * 0.06;
-            const bullet = new Projectile(this.x, this.y, angle, 8, 16, '#ff6600', 18, false, true);
-            bullet.burn = true;
-            bullet.burnDuration = 240;  // 4 seconds of burn
-            bullet.burnDamage = 5;  // 5 damage per tick (every 0.5s)
-            bullets.push(bullet);
+            bullets.push(new Projectile(this.x, this.y, angle, 5, 16, '#ff6600', 16, false, true));  // Even slower (was 6)
           }
 
-          // Aimed fire blast (STRONG BURN)
+          // Aimed fire blast (weaker burn)
           const dx = player.x - this.x;
           const dy = player.y - this.y;
           const aimAngle = Math.atan2(dy, dx);
           for (let i = -1; i <= 1; i++) {
-            const fireball = new Projectile(this.x, this.y, aimAngle + i * 0.3, 12, 18, '#ff3300', 20, false, true);
+            const fireball = new Projectile(this.x, this.y, aimAngle + i * 0.3, 9, 18, '#ff3300', 19, false, true);  // Slower (was 10)
             fireball.burn = true;
-            fireball.burnDuration = 360;  // 6 seconds
-            fireball.burnDamage = 8;  // 8 damage per tick (STRONG!)
+            fireball.burnDuration = 240;  // 4 seconds (was 6)
+            fireball.burnDamage = 4;  // 4 damage per tick (was 8)
             bullets.push(fireball);
           }
           return bullets;
@@ -1299,27 +1295,42 @@ class BossFactory {
         name: 'Medusa',
         size: 66,
         health: 12500,
-        shootDelay: 45,
+        shootDelay: 60,  // Regular attacks
         maxPhases: 4,
+        gazeCooldown: 0,
+        gazeDelay: 240,  // Gaze every 4 seconds
         shootPattern: function (player) {
-          // Snake bullets + petrify beams
+          // Snake bullets + triple aimbot
           const bullets = [];
-          const snakeCount = 16 + this.phase * 6; // 22, 28, 34, 40
+          const snakeCount = 8 + this.phase * 2; // 10, 12, 14, 16
 
           for (let i = 0; i < snakeCount; i++) {
             const angle = (i / snakeCount) * Math.PI * 2 + Math.sin(this.behaviorTimer * 0.05) * 0.5;
-            const bullet = new Projectile(this.x, this.y, angle, 8, 15, '#00ff7f', 17, false, true);  // forceColor
+            const bullet = new Projectile(this.x, this.y, angle, 6, 14, '#00ff7f', 15, false, true);
             bullet.homing = true;
-            bullet.homingStrength = 0.01;  // Slower (was 0.02)
+            bullet.homingStrength = 0.008;
             bullets.push(bullet);
           }
+
+          // Triple aimbot bullets (middle one stronger)
+          const dx = player.x - this.x;
+          const dy = player.y - this.y;
+          const aimAngle = Math.atan2(dy, dx);
+
+          // Side bullets
+          bullets.push(new Projectile(this.x, this.y, aimAngle - 0.15, 11, 16, '#ff0066', 19, false, true));  // Left
+          bullets.push(new Projectile(this.x, this.y, aimAngle + 0.15, 11, 16, '#ff0066', 19, false, true));  // Right
+
+          // Middle bullet (STRONGER!)
+          bullets.push(new Projectile(this.x, this.y, aimAngle, 12, 19, '#ff0000', 25, false, true));  // Bigger, faster, more damage!
+
           return bullets;
         },
         updateBehavior: function (player, w, h) {
-          // Stalking movement
+          // Slow stalking
           const dx = player.x - this.x;
-          this.vx = Math.sign(dx) * 2.5 + Math.sin(this.behaviorTimer * 0.04) * 2;
-          this.vy = Math.cos(this.behaviorTimer * 0.05) * 2;
+          this.vx = Math.sign(dx) * 1.5 + Math.sin(this.behaviorTimer * 0.03) * 1;
+          this.vy = Math.cos(this.behaviorTimer * 0.04) * 1.5;
         }
       },
 
@@ -1351,34 +1362,22 @@ class BossFactory {
 
       46: {
         name: 'Cerberus',
-        size: 82,
-        health: 13500,
-        shootDelay: 35,
-        maxPhases: 4,
+        size: 50,  // Main body
+        health: 4500,  // Body HP (vulnerable after heads die)
+        shootDelay: 120,  // Body fires weak bullets
+        maxPhases: 1,
+        multiEntity: true,  // Special multi-part boss
+        invulnerableUntilHeadsDead: true,
         shootPattern: function (player) {
-          // 3 heads = 3 different attack patterns
+          // Main body fires weak bullets
           const bullets = [];
           const dx = player.x - this.x;
           const dy = player.y - this.y;
-          const playerAngle = Math.atan2(dy, dx);
+          const angle = Math.atan2(dy, dx);
 
-          // Head 1: Aimed barrage
-          const count1 = 8 + this.phase * 2;
-          for (let i = 0; i < count1; i++) {
-            const spread = (i - count1 / 2) * 0.15;
-            bullets.push(new Projectile(this.x - 50, this.y, playerAngle + spread, 11, 16, '#ff0000', 19, false));
-          }
-
-          // Head 2: Spiral
-          for (let i = 0; i < 12; i++) {
-            const angle = (i / 12) * Math.PI * 2 + this.behaviorTimer * 0.08;
-            bullets.push(new Projectile(this.x + 50, this.y, angle, 8, 15, '#ff4444', 18, false));
-          }
-
-          // Head 3: Ring
-          for (let i = 0; i < 16; i++) {
-            const angle = (i / 16) * Math.PI * 2;
-            bullets.push(new Projectile(this.x, this.y + 30, angle, 9, 15, '#ff8888', 18, false));
+          // 3 weak bullets
+          for (let i = -1; i <= 1; i++) {
+            bullets.push(new Projectile(this.x, this.y, angle + i * 0.25, 7, 14, '#8b0000', 14, false, true));
           }
 
           return bullets;
@@ -1398,9 +1397,9 @@ class BossFactory {
 
           for (let w = 0; w < waves; w++) {
             const waveOffset = w * 0.4;
-            for (let i = 0; i < 20; i++) {
-              const angle = (i / 20) * Math.PI * 2 + waveOffset;
-              bullets.push(new Projectile(this.x, this.y, angle, 6 + w, 19, '#8d6e63', 19, false));
+            for (let i = 0; i < 12; i++) {  // 12 instead of 20
+              const angle = (i / 12) * Math.PI * 2 + waveOffset;
+              bullets.push(new Projectile(this.x, this.y, angle, 4 + w, 12, '#8d6e63', 16, false, true));
             }
           }
           return bullets;
@@ -1416,27 +1415,27 @@ class BossFactory {
         name: 'Armageddon',
         size: 88,
         health: 14500,
-        shootDelay: 35,
+        shootDelay: 60,  // Slower (was 35)
         maxPhases: 5,
         shootPattern: function (player) {
-          // End of world - everything fires
+          // End of world - balanced difficulty
           const bullets = [];
           const dx = player.x - this.x;
           const dy = player.y - this.y;
           const angle = Math.atan2(dy, dx);
 
-          // Aimed barrage
-          const aimedCount = 10 + this.phase * 3;
+          // Aimed barrage (40% fewer)
+          const aimedCount = 6 + this.phase * 2;  // 8-16 (was 13-25)
           for (let i = 0; i < aimedCount; i++) {
-            const spread = (i - aimedCount / 2) * 0.1;
-            bullets.push(new Projectile(this.x, this.y, angle + spread, 13, 16, '#ff1744', 20, false));
+            const spread = (i - aimedCount / 2) * 0.15;  // Wider spread
+            bullets.push(new Projectile(this.x, this.y, angle + spread, 10, 15, '#ff1744', 19, false, true));  // Slower (was 13)
           }
 
-          // Omnidirectional wave
-          const ringCount = 24 + this.phase * 4;
+          // Omnidirectional wave (40% fewer)
+          const ringCount = 14 + this.phase * 3;  // 17-29 (was 28-44)
           for (let i = 0; i < ringCount; i++) {
             const a = (i / ringCount) * Math.PI * 2 + this.behaviorTimer * 0.07;
-            bullets.push(new Projectile(this.x, this.y, a, 8, 15, '#d50000', 19, false));
+            bullets.push(new Projectile(this.x, this.y, a, 6, 14, '#d50000', 18, false, true));  // Slower (was 8)
           }
 
           return bullets;
@@ -1447,27 +1446,27 @@ class BossFactory {
         name: 'Ragnarok',
         size: 92,
         health: 15000,
-        shootDelay: 30,
+        shootDelay: 100,  // Very slow (was 70)
         maxPhases: 5,
         shootPattern: function (player) {
-          // Norse apocalypse - dual spiral + aimed
+          // Norse apocalypse - dual spiral + aimed (all slower)
           const bullets = [];
           const dx = player.x - this.x;
           const dy = player.y - this.y;
           const angle = Math.atan2(dy, dx);
 
-          // Dual spirals
+          // Dual spirals (even slower)
           const spiralSize = 15 + this.phase * 5; // 20, 25, 30, 35, 40
           for (let s = 0; s < 2; s++) {
             for (let i = 0; i < spiralSize; i++) {
               const a = (i / spiralSize) * Math.PI * 2 + s * Math.PI + this.behaviorTimer * 0.1;
-              bullets.push(new Projectile(this.x, this.y, a, 7 + s * 2, 17, '#673ab7', 20, false));
+              bullets.push(new Projectile(this.x, this.y, a, 4 + s * 0.5, 17, '#673ab7', 20, false, true));  // Much slower (was 5 + s)
             }
           }
 
-          // Aimed thunder
+          // Aimed thunder (much slower)
           for (let i = -4; i <= 4; i++) {
-            bullets.push(new Projectile(this.x, this.y, angle + i * 0.18, 14, 16, '#9c27b0', 21, false));
+            bullets.push(new Projectile(this.x, this.y, angle + i * 0.18, 8, 16, '#9c27b0', 21, false, true));  // Much slower (was 10)
           }
 
           return bullets;
@@ -1478,68 +1477,106 @@ class BossFactory {
         name: 'GOD MODE',
         size: 100,
         health: 20000,
-        shootDelay: 25,
+        shootDelay: 70,  // Balanced fire rate
         maxPhases: 6,
         color: '#ffffff',
+        godMode: true,  // Special ultimate boss
         shootPattern: function (player) {
-          // ULTIMATE BOSS - Everything combined
+          // ULTIMATE BOSS - Phase-based creative mechanics
           const bullets = [];
           const dx = player.x - this.x;
           const dy = player.y - this.y;
           const angle = Math.atan2(dy, dx);
 
           if (this.phase === 1) {
-            // Phase 1: Dense omnidirectional
-            for (let i = 0; i < 30; i++) {
-              bullets.push(new Projectile(this.x, this.y, (i / 30) * Math.PI * 2, 10, 16, '#e3f2fd', 20, false));
+            // PHASE 1: Elemental Tri-Force (Fire/Ice/Poison)
+            // Fire bullets (burn)
+            for (let i = 0; i < 8; i++) {
+              const spread = (i - 4) * 0.2;
+              const fireBullet = new Projectile(this.x, this.y, angle + spread, 8, 16, '#ff4500', 18, false, true);
+              fireBullet.burn = true;
+              fireBullet.burnDuration = 180;
+              fireBullet.burnDamage = 3;
+              bullets.push(fireBullet);
+            }
+            // Ice bullets (slow)
+            for (let i = 0; i < 8; i++) {
+              const a = (i / 8) * Math.PI * 2;
+              const iceBullet = new Projectile(this.x, this.y, a, 7, 15, '#00bfff', 17, false, true);
+              iceBullet.slow = true;
+              iceBullet.slowDuration = 180;
+              bullets.push(iceBullet);
+            }
+            // Poison bullets
+            for (let i = 0; i < 8; i++) {
+              const a = (i / 8) * Math.PI * 2 + Math.PI / 8;
+              const poisonBullet = new Projectile(this.x, this.y, a, 7, 15, '#00ff00', 17, false, true);
+              poisonBullet.poison = true;
+              poisonBullet.poisonDuration = 240;
+              poisonBullet.poisonDamage = 4;
+              bullets.push(poisonBullet);
             }
           } else if (this.phase === 2) {
-            // Phase 2: Spiral + aimed
-            for (let i = 0; i < 24; i++) {
-              const a = (i / 24) * Math.PI * 2 + this.behaviorTimer * 0.12;
-              bullets.push(new Projectile(this.x, this.y, a, 9, 17, '#bbdefb', 20, false));
-            }
+            // PHASE 2: Summoner (continues from Phase 1 + spawns)
+            // Purple aimed bullets
             for (let i = -5; i <= 5; i++) {
-              bullets.push(new Projectile(this.x, this.y, angle + i * 0.12, 14, 15, '#90caf9', 21, false));
+              bullets.push(new Projectile(this.x, this.y, angle + i * 0.15, 9, 16, '#8b00ff', 18, false, true));
             }
           } else if (this.phase === 3) {
-            // Phase 3: Multi-layer rings
-            for (let r = 0; r < 3; r++) {
-              for (let i = 0; i < 20; i++) {
-                const a = (i / 20) * Math.PI * 2 + r * Math.PI / 3;
-                bullets.push(new Projectile(this.x, this.y, a, 7 + r * 2, 16, '#64b5f6', 21, false));
-              }
+            // PHASE 3: Stone Gaze Terror (petrify handled in engine)
+            // Homing snake bullets
+            for (let i = 0; i < 16; i++) {
+              const a = (i / 16) * Math.PI * 2;
+              const snake = new Projectile(this.x, this.y, a, 6, 14, '#00ff7f', 16, false, true);
+              snake.homing = true;
+              snake.homingStrength = 0.008;
+              bullets.push(snake);
             }
           } else if (this.phase === 4) {
-            // Phase 4: Homing storm
-            for (let i = 0; i < 40; i++) {
-              const a = (i / 40) * Math.PI * 2;
-              const bullet = new Projectile(this.x, this.y, a, 8, 16, '#42a5f5', 22, false);
-              bullet.homing = true;
-              bullet.homingStrength = 0.03;
-              bullets.push(bullet);
-            }
+            // PHASE 4: Multi-Position (shoots from 3 positions)
+            const positions = [
+              { x: this.x, y: this.y },
+              { x: this.x - 120, y: this.y },
+              { x: this.x + 120, y: this.y }
+            ];
+
+            positions.forEach(pos => {
+              for (let i = -2; i <= 2; i++) {
+                const dx2 = player.x - pos.x;
+                const dy2 = player.y - pos.y;
+                const a2 = Math.atan2(dy2, dx2);
+                bullets.push(new Projectile(pos.x, pos.y, a2 + i * 0.2, 8, 15, '#ff00ff', 19, false, true));
+              }
+            });
           } else if (this.phase === 5) {
-            // Phase 5: EVERYTHING
-            // Aimed barrage
-            for (let i = -8; i <= 8; i++) {
-              bullets.push(new Projectile(this.x, this.y, angle + i * 0.08, 13, 17, '#2196f3', 22, false));
+            // PHASE 5: Apocalyptic Patterns (waves + spirals)
+            // Earthquake waves
+            for (let w = 0; w < 2; w++) {
+              for (let i = 0; i < 10; i++) {
+                const a = (i / 10) * Math.PI * 2 + w * 0.3;
+                bullets.push(new Projectile(this.x, this.y, a, 5 + w, 14, '#8d6e63', 17, false, true));
+              }
             }
-            // Omnidirectional
-            for (let i = 0; i < 36; i++) {
-              bullets.push(new Projectile(this.x, this.y, (i / 36) * Math.PI * 2, 9, 16, '#1e88e5', 21, false));
+            // Dual spirals
+            for (let s = 0; s < 2; s++) {
+              for (let i = 0; i < 15; i++) {
+                const a = (i / 15) * Math.PI * 2 + s * Math.PI + this.behaviorTimer * 0.08;
+                bullets.push(new Projectile(this.x, this.y, a, 4 + s * 0.5, 15, '#673ab7', 18, false, true));
+              }
             }
           } else {
-            // Phase 6: ABSOLUTE CHAOS
-            for (let i = 0; i < 50; i++) {
-              const a = Math.random() * Math.PI * 2;
-              const speed = 6 + Math.random() * 8;
-              const bullet = new Projectile(this.x, this.y, a, speed, 18, '#1976d2', 23, false);
-              if (i % 3 === 0) {
-                bullet.homing = true;
-                bullet.homingStrength = 0.04;
-              }
-              bullets.push(bullet);
+            // PHASE 6: DIVINE FINALE (everything combined but balanced)
+            // Mixed elemental
+            for (let i = 0; i < 10; i++) {
+              const a = (i / 10) * Math.PI * 2;
+              const colors = ['#ff4500', '#00bfff', '#00ff00'];
+              const color = colors[i % 3];
+              bullets.push(new Projectile(this.x, this.y, a, 6, 15, color, 17, false, true));
+            }
+            // Spirals
+            for (let i = 0; i < 12; i++) {
+              const a = (i / 12) * Math.PI * 2 + this.behaviorTimer * 0.1;
+              bullets.push(new Projectile(this.x, this.y, a, 5, 14, '#ffffff', 18, false, true));
             }
           }
           return bullets;

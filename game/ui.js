@@ -373,6 +373,24 @@ class UIManager {
       activeAbilityY += 15;
     }
 
+    // Petrified status indicator
+    if (player.petrified && player.petrifiedDuration > 0) {
+      const timeLeft = player.petrifiedDuration / 60;
+      ctx.fillStyle = '#808080';
+      ctx.font = 'bold 12px Arial';
+      ctx.fillText(`🗿 Petrified: ${timeLeft.toFixed(1)}s`, barX, activeAbilityY);
+      activeAbilityY += 15;
+    }
+
+    // Slowed status indicator
+    if (player.slowed && player.slowedDuration > 0) {
+      const timeLeft = player.slowedDuration / 60;
+      ctx.fillStyle = '#00bfff';
+      ctx.font = 'bold 12px Arial';
+      ctx.fillText(`❄️ Slowed: ${timeLeft.toFixed(1)}s`, barX, activeAbilityY);
+      activeAbilityY += 15;
+    }
+
     // Auto-mode indicator
     if (player.autoMode) {
       ctx.fillStyle = '#ffd43b';

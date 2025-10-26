@@ -18,6 +18,10 @@ class Projectile {
     this.burn = false;  // Flag for burn/fire bullets
     this.burnDuration = 0;
     this.burnDamage = 0;
+    this.petrify = false;  // Flag for petrification bullets
+    this.petrifyDuration = 0;
+    this.slow = false;  // Flag for slow/ice bullets
+    this.slowDuration = 0;
 
     // Use custom color if forceColor is true, otherwise use damage-based color
     if (forceColor || isPlayerBullet) {

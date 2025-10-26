@@ -36,6 +36,13 @@ class Boss {
     this.ghostSpawnTimer = 0;  // Track time for ghost spawning
     this.spawnsFirePools = config.spawnsFirePools || false;
     this.firePoolTimer = 0;
+    this.gazeCooldown = config.gazeCooldown || 0;
+    this.gazeDelay = config.gazeDelay || 0;
+    this.multiEntity = config.multiEntity || false;
+    this.invulnerableUntilHeadsDead = config.invulnerableUntilHeadsDead || false;
+    this.godMode = config.godMode || false;
+    this.godModePhase = 1;  // Track GOD MODE sub-phases
+    this.petrifyTimer = 0;
   }
 
   generateRedShade(level) {

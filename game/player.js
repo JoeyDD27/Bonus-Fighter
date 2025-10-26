@@ -54,11 +54,21 @@ class Player {
     this.burning = false;
     this.burnDuration = 0;
     this.burnDamagePerTick = 0;
+
+    // Petrified status (stone freeze)
+    this.petrified = false;
+    this.petrifiedDuration = 0;
+    this.justPetrified = false;  // Track if just got petrified
+
+    // Slowed status (ice effect)
+    this.slowed = false;
+    this.slowedDuration = 0;
+    this.slowMultiplier = 1.0;
   }
 
   update(keys, canvasWidth, canvasHeight) {
     // Reset speed and damage (berserker removed, revenge is passive only)
-    this.speed = this.baseSpeed;
+    this.speed = this.baseSpeed * this.slowMultiplier;  // Apply slow if active
     this.bulletDamage = this.baseBulletDamage;
 
     // Handle poison damage over time
@@ -83,7 +93,34 @@ class Player {
       }
     }
 
-    // Movement
+    // Handle petrified status
+    if (this.petrified && this.petrifiedDuration > 0) {
+      this.petrifiedDuration--;
+      if (this.petrifiedDuration <= 0) {
+        this.petrified = false;
+        this.color = '#4dabf7';  // Back to blue
+      }
+    }
+
+    // Handle slowed status
+    if (this.slowed && this.slowedDuration > 0) {
+      this.slowedDuration--;
+      this.slowMultiplier = 0.5;  // 50% speed
+      if (this.slowedDuration <= 0) {
+        this.slowed = false;
+        this.slowMultiplier = 1.0;
+      }
+    } else {
+      this.slowMultiplier = 1.0;
+    }
+
+    // Movement (blocked if petrified)
+    if (this.petrified) {
+      this.vx = 0;
+      this.vy = 0;
+      return;  // Can't move when petrified!
+    }
+
     this.vx = 0;
     this.vy = 0;
 
@@ -119,12 +156,32 @@ class Player {
     this.lastHealth = this.health;
   }
 
-  setAimPosition(x, y, boss = null) {
-    // If auto-mode is on and boss exists, aim at boss
-    if (this.autoMode && boss) {
-      this.aimX = boss.x;
-      this.aimY = boss.y;
+  setAimPosition(x, y, boss = null, cerberusHeads = []) {
+    // Auto-aim prioritizes Cerberus heads over body
+    if (this.autoMode) {
+      const aliveHeads = cerberusHeads.filter(h => !h.isDead());
+      if (aliveHeads.length > 0) {
+        // Target nearest alive head
+        let nearestHead = aliveHeads[0];
+        let minDist = Math.sqrt((nearestHead.x - this.x) ** 2 + (nearestHead.y - this.y) ** 2);
+
+        for (const head of aliveHeads) {
+          const dist = Math.sqrt((head.x - this.x) ** 2 + (head.y - this.y) ** 2);
+          if (dist < minDist) {
+            minDist = dist;
+            nearestHead = head;
+          }
+        }
+
+        this.aimX = nearestHead.x;
+        this.aimY = nearestHead.y;
+      } else if (boss) {
+        // No heads, aim at boss
+        this.aimX = boss.x;
+        this.aimY = boss.y;
+      }
     } else {
+      // Manual aim
       this.aimX = x;
       this.aimY = y;
     }
@@ -140,6 +197,9 @@ class Player {
   }
 
   shoot() {
+    // Can't shoot when petrified
+    if (this.petrified) return null;
+
     if (this.shootCooldown === 0) {
       // Calculate angle to mouse position
       const dx = this.aimX - this.x;
@@ -177,6 +237,18 @@ class Player {
     this.burning = true;
     this.burnDuration = Math.max(this.burnDuration, duration);  // Extend duration if already burning
     this.burnDamagePerTick = damagePerTick;
+  }
+
+  applyPetrify(duration) {
+    this.petrified = true;
+    this.petrifiedDuration = duration;
+    this.color = '#808080';  // Turn gray when petrified
+    this.justPetrified = true;  // Flag for burst fire
+  }
+
+  applySlow(duration) {
+    this.slowed = true;
+    this.slowedDuration = Math.max(this.slowedDuration, duration);
   }
 
   heal(amount) {

@@ -140,14 +140,13 @@ class AbilityManager {
         name: 'Tactician',
         type: 'passive',
         cost: 250,
-        description: '+18% dmg, +10% HP, +15% speed, heal 3%/3s',
+        description: '+18% dmg, +10% HP, +15% speed, E=10s R=12s, heal 2%/sec',
         passive: true,
         damageBoost: 0.18,
         healthBoost: 0.10,
         speedBoost: 0.15,
-        cooldownReduction: 0.15,
-        healPercent: 0.03,
-        healInterval: 180  // 3 seconds in frames
+        healPercent: 0.02,
+        healInterval: 60  // 1 second in frames
       },
 
       revenge: {
@@ -217,10 +216,10 @@ class AbilityManager {
     }
 
     if (equippedAbilities.passive === 'tactician') {
-      // Heal 3% max HP every 3 seconds
+      // Heal 2% max HP every 1 second (always active)
       this.tacticianHealTimer++;
-      if (this.tacticianHealTimer >= 180 && player.health < player.maxHealth) {
-        player.heal(player.maxHealth * 0.03);
+      if (this.tacticianHealTimer >= 60 && player.health < player.maxHealth) {
+        player.heal(player.maxHealth * 0.02);
         this.tacticianHealTimer = 0;
       }
     }
@@ -242,10 +241,16 @@ class AbilityManager {
     // Activate ability
     const result = ability.activate(player, this);
 
-    // Set cooldown (with Tactician reduction if equipped)
-    const cdReduction = equippedAbilities.passive === 'tactician' ? 0.85 : 1.0; // 15% reduction
-    if (type === 'healing') this.cooldowns.healing = Math.floor(ability.cooldown * cdReduction);
-    if (type === 'special') this.cooldowns.special = Math.floor(ability.cooldown * cdReduction);
+    // Set cooldown (Tactician sets fixed low cooldowns)
+    if (equippedAbilities.passive === 'tactician') {
+      // Tactician: 10s healing, 12s special
+      if (type === 'healing') this.cooldowns.healing = 600;  // 10 seconds
+      if (type === 'special') this.cooldowns.special = 720;  // 12 seconds
+    } else {
+      // Normal: use ability's base cooldown
+      if (type === 'healing') this.cooldowns.healing = ability.cooldown;
+      if (type === 'special') this.cooldowns.special = ability.cooldown;
+    }
 
     return result;
   }

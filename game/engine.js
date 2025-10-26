@@ -25,6 +25,7 @@ class GameEngine {
     this.enemyBullets = [];
     this.ghosts = [];  // Ghost minions
     this.firePools = [];  // Fire pools from Dragon
+    this.cerberusHeads = [];  // Cerberus heads (multi-entity boss)
 
     // Systems
     this.storage = new StorageManager();
@@ -350,11 +351,22 @@ class GameEngine {
     // Create boss with scaling based on player upgrades
     this.boss = BossFactory.createBoss(level, upgrades);
 
-    // Clear bullets, ghosts, and fire pools
+    // Clear bullets, ghosts, fire pools, and cerberus heads
     this.playerBullets = [];
     this.enemyBullets = [];
     this.ghosts = [];  // Clear ghost minions
     this.firePools = [];  // Clear fire pools
+    this.cerberusHeads = [];  // Clear old cerberus heads
+
+    // Spawn Cerberus heads if this is Cerberus (level 46)
+    if (this.boss.multiEntity && level === 46) {
+      this.cerberusHeads = [
+        new CerberusHead(this.width / 2 - 100, 100, 'fire', this.boss.phase),
+        new CerberusHead(this.width / 2 + 100, 100, 'ice', this.boss.phase),
+        new CerberusHead(this.width / 2, 70, 'poison', this.boss.phase)
+      ];
+      console.log('Cerberus heads spawned:', this.cerberusHeads.length);
+    }
 
     // Reset session stats
     this.sessionStats = {
@@ -459,8 +471,8 @@ class GameEngine {
       this.menuCooldown = 15;
     }
 
-    // Activate healing ability (E key)
-    if (this.controls.keys['e'] && this.menuCooldown === 0) {
+    // Activate healing ability (E key) - blocked when petrified
+    if (this.controls.keys['e'] && this.menuCooldown === 0 && !this.player.petrified) {
       console.log('E pressed! Equipped:', this.gameData.equippedAbilities?.healing, 'Cooldown:', this.abilityManager.cooldowns.healing);
       const result = this.abilityManager.activateAbility('healing', this.gameData.equippedAbilities || {}, this.player);
       console.log('Healing result:', result);
@@ -469,8 +481,8 @@ class GameEngine {
       }
     }
 
-    // Activate special ability (R key)
-    if (this.controls.keys['r'] && this.menuCooldown === 0) {
+    // Activate special ability (R key) - blocked when petrified
+    if (this.controls.keys['r'] && this.menuCooldown === 0 && !this.player.petrified) {
       console.log('R pressed! Equipped:', this.gameData.equippedAbilities?.special, 'Cooldown:', this.abilityManager.cooldowns.special);
       const result = this.abilityManager.activateAbility('special', this.gameData.equippedAbilities || {}, this.player);
       console.log('Special result:', result);
@@ -493,9 +505,9 @@ class GameEngine {
     // Update ability manager (cooldowns, passive effects)
     this.abilityManager.update(this.player, this.gameData.equippedAbilities || {});
 
-    // Update player aim (with auto-aim if enabled)
+    // Update player aim (with auto-aim if enabled, prioritize Cerberus heads)
     const aimPos = this.controls.getAimPosition();
-    this.player.setAimPosition(aimPos.x, aimPos.y, this.boss);
+    this.player.setAimPosition(aimPos.x, aimPos.y, this.boss, this.cerberusHeads);
 
     // Update player
     this.player.update(this.controls.keys, this.width, this.height);
@@ -519,6 +531,17 @@ class GameEngine {
 
         this.playerBullets.push(bullet);
         this.sessionStats.shotsFired++;
+      }
+    }
+
+    // Update Cerberus heads
+    for (const head of this.cerberusHeads) {
+      head.update();
+
+      // Heads shoot
+      const headBullets = head.shoot(this.player);
+      if (headBullets && headBullets.length > 0) {
+        this.enemyBullets.push(...headBullets);
       }
     }
 
@@ -547,11 +570,23 @@ class GameEngine {
       // Normal mode - single boss
       this.boss.update(this.player, this.width, this.height);
 
-      // Laser beam damage if active
+      // Laser beam damage if active (targets heads if alive, otherwise body)
       if (this.abilityManager.isLaserActive()) {
         const laserDamage = this.player.bulletDamage * 0.0375 * this.abilityManager.getVulnerabilityMultiplier();
-        this.boss.takeDamage(laserDamage, 'laser');
-        this.applyVampireHeal(laserDamage);
+
+        // Prioritize heads if they exist
+        const aliveHeads = this.cerberusHeads.filter(h => !h.isDead());
+        if (aliveHeads.length > 0) {
+          // Split laser damage among alive heads
+          aliveHeads.forEach(head => {
+            head.takeDamage(laserDamage / aliveHeads.length);
+            this.applyVampireHeal(laserDamage / aliveHeads.length);
+          });
+        } else {
+          // No heads, damage boss normally
+          this.boss.takeDamage(laserDamage, 'laser');
+          this.applyVampireHeal(laserDamage);
+        }
       }
 
       // Necromancer ghost spawning (1 ghost every 5 seconds, max 4)
@@ -582,11 +617,93 @@ class GameEngine {
         }
       }
 
+      // Medusa stone gaze (every 4 seconds)
+      if (this.boss.gazeDelay > 0) {
+        this.boss.gazeCooldown++;
+        if (this.boss.gazeCooldown >= this.boss.gazeDelay) {
+          // Shoot petrify beam
+          const dx = this.player.x - this.boss.x;
+          const dy = this.player.y - this.boss.y;
+          const angle = Math.atan2(dy, dx);
+
+          const gazeBullet = new Projectile(this.boss.x, this.boss.y, angle, 10, 24, '#ffffff', 0, false, true);
+          gazeBullet.petrify = true;
+          gazeBullet.petrifyDuration = 180;  // 3 seconds frozen
+          this.enemyBullets.push(gazeBullet);
+
+          this.boss.gazeCooldown = 0;
+        }
+      }
+
+      // GOD MODE special mechanics based on phase
+      if (this.boss.godMode) {
+        // Phase 2+: Spawn ghosts (max 2)
+        if (this.boss.phase >= 2 && this.boss.phase <= 6) {
+          this.boss.ghostSpawnTimer = (this.boss.ghostSpawnTimer || 0) + 1;
+          if (this.boss.ghostSpawnTimer >= 300 && this.ghosts.length < 2) {
+            const offsetAngle = Math.random() * Math.PI * 2;
+            const spawnX = this.boss.x + Math.cos(offsetAngle) * 60;
+            const spawnY = this.boss.y + Math.sin(offsetAngle) * 60;
+            this.ghosts.push(new Ghost(spawnX, spawnY));
+            this.boss.ghostSpawnTimer = 0;
+          }
+        }
+
+        // Phase 2+: Spawn fire pools
+        if (this.boss.phase >= 2 && this.boss.phase <= 6) {
+          this.boss.firePoolTimer = (this.boss.firePoolTimer || 0) + 1;
+          if (this.boss.firePoolTimer >= 180) {  // Every 3 seconds
+            const poolCount = this.boss.phase === 6 ? 3 : 2;
+            for (let i = 0; i < poolCount; i++) {
+              const poolX = Math.random() * (this.width - 100) + 50;
+              const poolY = Math.random() * (this.height - 200) + 100;
+              this.firePools.push(new FirePool(poolX, poolY, 50, 360, 30));
+            }
+            this.boss.firePoolTimer = 0;
+          }
+        }
+
+        // Phase 3+: Petrify beams
+        if (this.boss.phase >= 3 && this.boss.phase <= 6) {
+          this.boss.petrifyTimer = (this.boss.petrifyTimer || 0) + 1;
+          const petrifyDelay = this.boss.phase === 6 ? 180 : 210;  // Faster in phase 6
+          if (this.boss.petrifyTimer >= petrifyDelay) {
+            const dx = this.player.x - this.boss.x;
+            const dy = this.player.y - this.boss.y;
+            const angle = Math.atan2(dy, dx);
+
+            const petrifySpeed = this.boss.phase === 6 ? 12 : 10;
+            const gazeBullet = new Projectile(this.boss.x, this.boss.y, angle, petrifySpeed, 24, '#ffffff', 0, false, true);
+            gazeBullet.petrify = true;
+            gazeBullet.petrifyDuration = 150;  // 2.5 seconds
+            this.enemyBullets.push(gazeBullet);
+
+            this.boss.petrifyTimer = 0;
+          }
+        }
+      }
+
       // Boss shooting (unless disarmed)
       if (!this.abilityManager.isDisarmActive()) {
         const newBullets = this.boss.shoot(this.player);
         if (newBullets && newBullets.length > 0) {
           this.enemyBullets.push(...newBullets);
+        }
+
+        // Medusa burst fire ONCE when player first gets petrified
+        if (this.boss.gazeDelay > 0 && this.player.justPetrified) {
+          // Fire burst at newly frozen player (total ~250 damage)
+          const dx = this.player.x - this.boss.x;
+          const dy = this.player.y - this.boss.y;
+          const angle = Math.atan2(dy, dx);
+
+          // Fire 14 bullets at 18 damage each = 252 total damage
+          for (let i = -6; i <= 6; i += 0.5) {
+            const burstBullet = new Projectile(this.boss.x, this.boss.y, angle + i * 0.08, 9, 15, '#00ffff', 18, false, true);
+            this.enemyBullets.push(burstBullet);
+          }
+
+          this.player.justPetrified = false;  // Only fire once
         }
       }
     }
@@ -637,7 +754,24 @@ class GameEngine {
       const bullet = this.playerBullets[i];
       bullet.update(this.boss);  // Pass boss for homing bullets
 
-      // Check collision with ghosts first
+      // Check collision with Cerberus heads first
+      let hitHead = false;
+      for (const head of this.cerberusHeads) {
+        if (bullet.checkCollision(head)) {
+          head.takeDamage(bullet.damage);
+          this.applyVampireHeal(bullet.damage);
+          hitHead = true;
+          break;
+        }
+      }
+
+      if (hitHead) {
+        this.playerBullets.splice(i, 1);
+        this.sessionStats.shotsHit++;
+        continue;
+      }
+
+      // Check collision with ghosts
       let hitGhost = false;
       for (const ghost of this.ghosts) {
         if (bullet.checkCollision(ghost)) {
@@ -670,7 +804,11 @@ class GameEngine {
         }
       } else {
         // Normal mode - single boss
-        if (bullet.checkCollision(this.boss)) {
+        // Check if boss is invulnerable (Cerberus with heads alive)
+        const allHeadsDead = this.cerberusHeads.length === 0 || this.cerberusHeads.every(h => h.isDead());
+        const canDamageBoss = !this.boss.invulnerableUntilHeadsDead || allHeadsDead;
+
+        if (bullet.checkCollision(this.boss) && canDamageBoss) {
           const finalDamage = bullet.damage * this.abilityManager.getVulnerabilityMultiplier();
           this.boss.takeDamage(finalDamage, 'bullet');
           this.applyVampireHeal(finalDamage);
@@ -712,6 +850,16 @@ class GameEngine {
           this.player.applyBurn(bullet.burnDuration, bullet.burnDamage);
         }
 
+        // Apply petrify effect if bullet has petrify
+        if (bullet.petrify) {
+          this.player.applyPetrify(bullet.petrifyDuration);
+        }
+
+        // Apply slow effect if bullet has slow
+        if (bullet.slow) {
+          this.player.applySlow(bullet.slowDuration);
+        }
+
         // Auto-activate Shield if player would die and shield is equipped + ready
         if (this.player.health <= 0 &&
           this.gameData.equippedAbilities?.healing === 'shield' &&
@@ -728,7 +876,14 @@ class GameEngine {
           const revengeMultipliers = [3, 4, 5, 7, 8, 10, 11, 12, 13, 14, 15, 16];  // Extends to level 11
           const multiplier = revengeMultipliers[damageLevel];
           const revengeDamage = finalDamage * multiplier;
-          this.boss.takeDamage(revengeDamage);
+
+          // Check if boss can be damaged (Cerberus body invulnerable with heads alive)
+          const allHeadsDead = this.cerberusHeads.length === 0 || this.cerberusHeads.every(h => h.isDead());
+          const canDamageBoss = !this.boss.invulnerableUntilHeadsDead || allHeadsDead;
+
+          if (canDamageBoss) {
+            this.boss.takeDamage(revengeDamage);
+          }
 
           // Vampire does NOT heal from Revenge damage at all (prevents OP combo)
           // No vampire healing here!
@@ -744,8 +899,11 @@ class GameEngine {
       }
     }
 
-    // Check victory / wave complete
-    if (this.boss && this.boss.isDead()) {
+    // Check victory / wave complete (all heads must be dead for Cerberus)
+    const allHeadsDead = this.cerberusHeads.length === 0 || this.cerberusHeads.every(h => h.isDead());
+    const bossActuallyDead = this.boss && this.boss.isDead() && allHeadsDead;
+
+    if (bossActuallyDead) {
       if (this.isGrindMode) {
         // Remove defeated boss from grind bosses
         const index = this.grindBosses.indexOf(this.boss);
@@ -1032,6 +1190,9 @@ class GameEngine {
 
     // Draw ghosts
     this.ghosts.forEach(ghost => ghost.draw(this.ctx));
+
+    // Draw Cerberus heads
+    this.cerberusHeads.forEach(head => head.draw(this.ctx));
 
     // Draw HUD
     if (this.player) {

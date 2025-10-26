@@ -12,7 +12,7 @@ class StorageManager {
         levelsWithoutDamage: 0,  // For Untouchable quests
         consecutiveWins: 0  // For Survivor quest
       },
-      coins: 10000,  // DEVELOPER MODE: Start with 10000 coins!
+      coins: 0,  // Start with 0 coins - earn through gameplay!
       ownedAbilities: [],  // Array of owned ability IDs
       equippedAbilities: {
         healing: null,  // 'healthPotion', 'shield', 'vampire'
@@ -31,8 +31,8 @@ class StorageManager {
     // Initialize all 50 levels
     for (let i = 1; i <= 50; i++) {
       this.defaultData.levels[i] = {
-        unlocked: i <= 31,  // DEVELOPER MODE: Levels 1-31 unlocked (1-30 beaten)
-        completed: i <= 30,  // DEVELOPER MODE: Levels 1-30 pre-beaten
+        unlocked: i === 1,  // Only level 1 unlocked at start
+        completed: false,  // No levels pre-beaten
         bestTime: null,
         hasStarReward: false,
         noDamageCleared: false,  // For Untouchable tracking
