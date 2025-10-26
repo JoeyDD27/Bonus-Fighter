@@ -378,8 +378,8 @@ class GameEngine {
     this.firePools = [];  // Clear fire pools
     this.cerberusHeads = [];  // Clear old cerberus heads
 
-    // Spawn Cerberus heads if this is Cerberus (level 46)
-    if (this.boss.multiEntity && level === 46) {
+    // Spawn Cerberus heads if this is Cerberus (level 38)
+    if (this.boss.multiEntity && level === 38) {
       this.cerberusHeads = [
         new CerberusHead(this.width / 2 - 100, 100, 'fire', this.boss.phase),
         new CerberusHead(this.width / 2 + 100, 100, 'ice', this.boss.phase),

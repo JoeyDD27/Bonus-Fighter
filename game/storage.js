@@ -30,7 +30,9 @@ class StorageManager {
       hasCompletedInGameTutorial: false,  // Track if player completed Level 1 tutorial
       hasBoughtHealing: false,  // Track first healing ability purchase
       hasBoughtSpecial: false,  // Track first special ability purchase
-      hasBoughtPassive: false   // Track first passive ability purchase
+      hasBoughtPassive: false,  // Track first passive ability purchase
+      hasSeenQuestTutorial: false,  // Track if seen quest tutorial after level 1
+      hasSeenShopTutorial: false  // Track if seen shop/grind tutorial on main menu
     };
 
     // Initialize all 42 levels

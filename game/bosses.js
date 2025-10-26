@@ -46,26 +46,9 @@ class BossFactory {
         }
       },
 
+
+
       4: {
-        name: 'Orbiter',
-        size: 40,
-        health: 438,  // 350 * 1.25
-        shootDelay: 60,
-        updateBehavior: function (player, w, h) {
-          // Circular movement
-          const centerX = w / 2;
-          const centerY = 120;
-          const radius = 100;
-          const speed = 0.02;
-
-          this.x = centerX + Math.cos(this.behaviorTimer * speed) * radius;
-          this.y = centerY + Math.sin(this.behaviorTimer * speed) * radius;
-          this.vx = 0;
-          this.vy = 0;
-        }
-      },
-
-      5: {
         name: 'Rapid Fire',
         size: 35,
         health: 500,  // 400 * 1.25
@@ -82,44 +65,8 @@ class BossFactory {
         }
       },
 
-      6: {
-        name: 'Wave Master',
-        size: 42,
-        health: 563,  // 450 * 1.25
-        shootDelay: 70,
-        updateBehavior: function (player, w, h) {
-          // FIXED: Proper wave pattern that bounces off walls
 
-          // Initialize direction if not set
-          if (this.waveDirection === undefined) {
-            this.waveDirection = 1; // 1 = right, -1 = left
-          }
-
-          // Horizontal movement with direction
-          this.vx = this.waveDirection * 2.5;
-
-          // Vertical wave pattern (consistent wave motion)
-          this.vy = Math.sin(this.behaviorTimer * 0.05) * 2.5;
-
-          // Bounce off walls (change direction when near edges)
-          if (this.x <= this.size + 30) {
-            // Hit left wall - go right
-            this.waveDirection = 1;
-          } else if (this.x >= w - this.size - 30) {
-            // Hit right wall - go left
-            this.waveDirection = -1;
-          }
-
-          // Keep away from vertical edges too
-          if (this.y <= this.size + 20) {
-            this.vy = Math.abs(this.vy); // Force downward
-          } else if (this.y >= h / 2 - this.size - 20) {
-            this.vy = -Math.abs(this.vy); // Force upward
-          }
-        }
-      },
-
-      7: {
+      5: {
         name: 'Pentashot',
         size: 40,
         health: 625,  // 500 * 1.25
@@ -142,24 +89,7 @@ class BossFactory {
         }
       },
 
-      8: {
-        name: 'Zigzag',
-        size: 38,
-        health: 688,  // 550 * 1.25
-        shootDelay: 65,
-        updateBehavior: function (player, w, h) {
-          // Zigzag pattern
-          if (this.behaviorTimer % 40 < 20) {
-            this.vx = 3;
-            this.vy = -2;
-          } else {
-            this.vx = -3;
-            this.vy = 2;
-          }
-        }
-      },
-
-      9: {
+      6: {
         name: 'Spinner',
         size: 45,
         health: 750,  // 600 * 1.25
@@ -184,108 +114,10 @@ class BossFactory {
         }
       },
 
-      10: {
-        name: 'Summoner',
-        size: 50,
-        health: 750,  // 600 * 1.25
-        shootDelay: 120,
-        shootPattern: function (player) {
-          // AIMBOT + HIGH DAMAGE ring + aimed shot
-          const bullets = [];
-          const dx = player.x - this.x;
-          const dy = player.y - this.y;
-          const playerAngle = Math.atan2(dy, dx);
 
-          // Ring of 12 bullets with HIGH DAMAGE (15)
-          for (let i = 0; i < 12; i++) {
-            const angle = (i / 12) * Math.PI * 2;
-            bullets.push(new Projectile(
-              this.x, this.y, angle, 10, 14, '#ff8787', 15, false  // Increased damage 8 → 15
-            ));
-          }
 
-          // AIMBOT: Perfect aimed shot at player
-          bullets.push(new Projectile(this.x, this.y, playerAngle, 12, 14, '#ff4444', 20, false));
 
-          return bullets;
-        }
-      },
-
-      11: {
-        name: 'Sniper',
-        size: 35,
-        health: 875,  // 700 * 1.25
-        shootDelay: 120,
-        bulletSpeed: 10,
-        bulletSize: 12,
-        shootPattern: function (player) {
-          // More damage sniper shots
-          const dx = player.x - this.x;
-          const dy = player.y - this.y;
-          const angle = Math.atan2(dy, dx);
-          return [new Projectile(this.x, this.y, angle, this.bulletSpeed, this.bulletSize, '#ff4444', 20, false)];
-        },
-        updateBehavior: function (player, w, h) {
-          // Smart dodging - moves in circles/zigzags instead of straight lines
-          const dx = player.x - this.x;
-          const dy = player.y - this.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-
-          // If too close, dodge in a circular pattern
-          if (dist < 200) {
-            this.vx = -Math.sign(dx) * 4 + Math.sin(this.behaviorTimer * 0.1) * 2;
-            this.vy = Math.cos(this.behaviorTimer * 0.1) * 2;
-          } else {
-            // Far away - strafe sideways
-            this.vx = Math.sin(this.behaviorTimer * 0.05) * 3;
-            this.vy = Math.cos(this.behaviorTimer * 0.08) * 1.5;
-          }
-        }
-      },
-
-      12: {
-        name: 'Fortress',
-        size: 55,
-        health: 938,  // 750 * 1.25
-        shootDelay: 50,
-        speed: 1,
-        shootPattern: function (player) {
-          // Aims at player + shoots in 4 cardinal + 4 diagonal directions (8 total)
-          const dx = player.x - this.x;
-          const dy = player.y - this.y;
-          const playerAngle = Math.atan2(dy, dx);
-
-          return [
-            // Aimed shot at player
-            new Projectile(this.x, this.y, playerAngle, this.bulletSpeed + 2, this.bulletSize, '#ff4444', 10, false),
-            // 4 cardinal directions
-            new Projectile(this.x, this.y, 0, this.bulletSpeed, this.bulletSize, '#ff6b6b', 10, false),
-            new Projectile(this.x, this.y, Math.PI / 2, this.bulletSpeed, this.bulletSize, '#ff6b6b', 10, false),
-            new Projectile(this.x, this.y, Math.PI, this.bulletSpeed, this.bulletSize, '#ff6b6b', 10, false),
-            new Projectile(this.x, this.y, -Math.PI / 2, this.bulletSpeed, this.bulletSize, '#ff6b6b', 10, false),
-            // 4 diagonal directions
-            new Projectile(this.x, this.y, Math.PI / 4, this.bulletSpeed, this.bulletSize, '#ff6b6b', 10, false),
-            new Projectile(this.x, this.y, 3 * Math.PI / 4, this.bulletSpeed, this.bulletSize, '#ff6b6b', 10, false),
-            new Projectile(this.x, this.y, 5 * Math.PI / 4, this.bulletSpeed, this.bulletSize, '#ff6b6b', 10, false),
-            new Projectile(this.x, this.y, 7 * Math.PI / 4, this.bulletSpeed, this.bulletSize, '#ff6b6b', 10, false)
-          ];
-        }
-      },
-
-      13: {
-        name: 'Stalker',
-        size: 40,
-        health: 1000,  // 800 * 1.25
-        shootDelay: 80,
-        updateBehavior: function (player, w, h) {
-          // Follows player horizontally
-          const dx = player.x - this.x;
-          this.vx = Math.sign(dx) * Math.min(Math.abs(dx) * 0.05, 3);
-          this.vy = Math.sin(this.behaviorTimer * 0.04) * 1.5;
-        }
-      },
-
-      14: {
+      7: {
         name: 'Burst King',
         size: 42,
         health: 1063,  // 850 * 1.25
@@ -309,7 +141,7 @@ class BossFactory {
         }
       },
 
-      15: {
+      8: {
         name: 'Teleporter',
         size: 38,
         health: 1125,  // 900 * 1.25
@@ -325,7 +157,7 @@ class BossFactory {
         }
       },
 
-      16: {
+      9: {
         name: 'Helix',
         size: 40,
         health: 1663,  // 950 * 1.75 (medium scaling tier)
@@ -350,7 +182,7 @@ class BossFactory {
         }
       },
 
-      17: {
+      10: {
         name: 'Berserker',
         size: 45,
         health: 1750,  // 1000 * 1.75
@@ -385,7 +217,7 @@ class BossFactory {
         }
       },
 
-      18: {
+      11: {
         name: 'Meteor Shower',
         size: 48,
         health: 1838,  // 1050 * 1.75
@@ -412,31 +244,7 @@ class BossFactory {
         }
       },
 
-      19: {
-        name: 'Phase Shifter',
-        size: 40,
-        health: 1925,  // 1100 * 1.75
-        shootDelay: 90,
-        updateBehavior: function (player, w, h) {
-          // Changes movement pattern every 5 seconds
-          const pattern = Math.floor(this.behaviorTimer / 300) % 3;
-
-          if (pattern === 0) {
-            this.vx = Math.sin(this.behaviorTimer * 0.03) * 3;
-            this.vy = 0;
-          } else if (pattern === 1) {
-            const centerX = w / 2;
-            this.x = centerX + Math.cos(this.behaviorTimer * 0.02) * 120;
-            this.vx = 0;
-            this.vy = 0;
-          } else {
-            this.vx = 0;
-            this.vy = Math.sin(this.behaviorTimer * 0.04) * 2;
-          }
-        }
-      },
-
-      20: {
+      12: {
         name: 'Twin Terror',
         size: 50,
         health: 2100,  // 1200 * 1.75
@@ -481,7 +289,7 @@ class BossFactory {
         }
       },
 
-      21: {
+      13: {
         name: 'Gatling',
         size: 42,
         health: 2275,  // 1300 * 1.75
@@ -496,7 +304,7 @@ class BossFactory {
         }
       },
 
-      22: {
+      14: {
         name: 'Geometric',
         size: 45,
         health: 2450,  // 1400 * 1.75
@@ -525,7 +333,7 @@ class BossFactory {
         }
       },
 
-      23: {
+      15: {
         name: 'Interceptor',
         size: 38,
         health: 2625,  // 1500 * 1.75
@@ -554,7 +362,7 @@ class BossFactory {
         }
       },
 
-      24: {
+      16: {
         name: 'Pulse Wave',
         size: 50,
         health: 2800,  // 1600 * 1.75
@@ -590,7 +398,7 @@ class BossFactory {
         }
       },
 
-      25: {
+      17: {
         name: 'Bullet Hell',
         size: 48,
         health: 2975,  // 1700 * 1.75
@@ -612,7 +420,7 @@ class BossFactory {
         }
       },
 
-      26: {
+      18: {
         name: 'Dimensional',
         size: 45,
         health: 4050,  // 1800 * 2.25 (strong scaling tier)
@@ -657,7 +465,7 @@ class BossFactory {
         }
       },
 
-      27: {
+      19: {
         name: 'Chaos Engine',
         size: 52,
         health: 4275,  // 1900 * 2.25
@@ -686,7 +494,7 @@ class BossFactory {
         }
       },
 
-      28: {
+      20: {
         name: 'Dreadnought',
         size: 60,
         health: 4500,  // 2000 * 2.25
@@ -715,7 +523,7 @@ class BossFactory {
         }
       },
 
-      29: {
+      21: {
         name: 'Omega Protocol',
         size: 55,
         health: 4950,  // 2200 * 2.25
@@ -771,7 +579,7 @@ class BossFactory {
         }
       },
 
-      30: {
+      22: {
         name: 'THE CRIMSON EMPEROR',
         size: 70,
         health: 5625,  // 2500 * 2.25 (final boss!)
@@ -849,8 +657,8 @@ class BossFactory {
         }
       },
 
-      // LEVELS 31-50: NIGHTMARE BOSSES (Harder than Crimson Emperor!)
-      31: {
+      // LEVELS 23-42: NIGHTMARE BOSSES (Harder than Crimson Emperor!)
+      23: {
         name: 'Hellfire',
         size: 65,
         health: 6000,
@@ -903,7 +711,7 @@ class BossFactory {
         }
       },
 
-      32: {
+      24: {
         name: 'Absolute Zero',
         size: 62,
         health: 6500,
@@ -930,7 +738,7 @@ class BossFactory {
         }
       },
 
-      33: {
+      25: {
         name: 'Black Hole',
         size: 70,
         health: 7000,
@@ -965,7 +773,7 @@ class BossFactory {
         }
       },
 
-      34: {
+      26: {
         name: 'Lightning Strike',
         size: 55,
         health: 7500,
@@ -997,7 +805,7 @@ class BossFactory {
         }
       },
 
-      35: {
+      27: {
         name: 'Plague Doctor',
         size: 60,
         health: 8000,
@@ -1035,7 +843,7 @@ class BossFactory {
         }
       },
 
-      36: {
+      28: {
         name: 'War Machine',
         size: 72,
         health: 8500,
@@ -1071,7 +879,7 @@ class BossFactory {
         }
       },
 
-      37: {
+      29: {
         name: 'Necromancer',
         size: 65,
         health: 9000,
@@ -1097,7 +905,7 @@ class BossFactory {
         }
       },
 
-      38: {
+      30: {
         name: 'Dragon',
         size: 75,
         health: 9500,
@@ -1128,7 +936,7 @@ class BossFactory {
         }
       },
 
-      39: {
+      31: {
         name: 'Hydra',
         size: 78,
         health: 10000,
@@ -1158,7 +966,7 @@ class BossFactory {
         }
       },
 
-      40: {
+      32: {
         name: 'Demon King',
         size: 80,
         health: 10500,
@@ -1209,8 +1017,8 @@ class BossFactory {
         }
       },
 
-      // LEVELS 41-50: IMPOSSIBLE Tier
-      41: {
+      // LEVELS 33-42: IMPOSSIBLE Tier
+      33: {
         name: 'Angel of Death',
         size: 68,
         health: 11000,
@@ -1237,7 +1045,7 @@ class BossFactory {
         }
       },
 
-      42: {
+      34: {
         name: 'Leviathan',
         size: 85,
         health: 11500,
@@ -1262,7 +1070,7 @@ class BossFactory {
         }
       },
 
-      43: {
+      35: {
         name: 'Phoenix',
         size: 70,
         health: 12000,
@@ -1298,7 +1106,7 @@ class BossFactory {
         }
       },
 
-      44: {
+      36: {
         name: 'Medusa',
         size: 66,
         health: 12500,
@@ -1341,7 +1149,7 @@ class BossFactory {
         }
       },
 
-      45: {
+      37: {
         name: 'Kraken',
         size: 90,
         health: 13000,
@@ -1367,7 +1175,7 @@ class BossFactory {
         }
       },
 
-      46: {
+      38: {
         name: 'Cerberus',
         size: 50,  // Main body
         health: 4500,  // Body HP (vulnerable after heads die)
@@ -1391,7 +1199,7 @@ class BossFactory {
         }
       },
 
-      47: {
+      39: {
         name: 'Behemoth',
         size: 95,
         health: 14000,
@@ -1418,7 +1226,7 @@ class BossFactory {
         }
       },
 
-      48: {
+      40: {
         name: 'Armageddon',
         size: 88,
         health: 14500,
@@ -1449,7 +1257,7 @@ class BossFactory {
         }
       },
 
-      49: {
+      41: {
         name: 'Ragnarok',
         size: 92,
         health: 15000,
@@ -1480,7 +1288,7 @@ class BossFactory {
         }
       },
 
-      50: {
+      42: {
         name: 'GOD MODE',
         size: 100,
         health: 20000,

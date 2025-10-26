@@ -58,6 +58,10 @@ class HTMLMenuManager {
     const questsBackBtn = document.getElementById('btn-quests-back');
     if (questsBackBtn) questsBackBtn.addEventListener('click', () => this.showMainMenu());
 
+    // Quests exit (sticky button)
+    const questsExitBtn = document.getElementById('btn-quests-exit');
+    if (questsExitBtn) questsExitBtn.addEventListener('click', () => this.showMainMenu());
+
     // Victory overlay buttons
     const victoryNextBtn = document.getElementById('btn-victory-next');
     if (victoryNextBtn) victoryNextBtn.addEventListener('click', () => this.onVictoryNext());
@@ -130,7 +134,7 @@ class HTMLMenuManager {
     document.getElementById('grindOverlay').classList.add('hidden');
   }
 
-  showVictoryOverlay(level, time, bestTime, coinsEarned) {
+  async showVictoryOverlay(level, time, bestTime, coinsEarned) {
     const overlay = document.getElementById('victoryOverlay');
     document.getElementById('victoryLevel').textContent = `Level ${level} Complete`;
     document.getElementById('victoryTime').textContent = `Time: ${time.toFixed(2)}s`;
@@ -157,6 +161,18 @@ class HTMLMenuManager {
     }
 
     overlay.classList.remove('hidden');
+
+    // Show quest tutorial after first level completion
+    if (level === 1) {
+      const data = await this.game.storage.loadData();
+      if (!data.hasSeenQuestTutorial) {
+        setTimeout(() => {
+          this.showTutorialMessage('Click Quest button to do quests and claim money!');
+          data.hasSeenQuestTutorial = true;
+          this.game.storage.saveData(data);
+        }, 1000);
+      }
+    }
   }
 
   hideVictoryOverlay() {
@@ -214,9 +230,19 @@ class HTMLMenuManager {
     }
   }
 
-  showMainMenu() {
+  async showMainMenu() {
     this.game.state = 'MENU';
     this.showScreen('mainMenu');
+
+    // Show shop/grind tutorial on second main menu visit
+    const data = await this.game.storage.loadData();
+    if (data.hasSeenQuestTutorial && !data.hasSeenShopTutorial) {
+      setTimeout(() => {
+        this.showTutorialMessage('Go to Shop to buy upgrades/abilities and Grind Mode to farm money!');
+        data.hasSeenShopTutorial = true;
+        this.game.storage.saveData(data);
+      }, 500);
+    }
   }
 
   async onPlayClick() {
@@ -338,10 +364,10 @@ class HTMLMenuManager {
     overlay.textContent = message;
     document.body.appendChild(overlay);
 
-    // Remove after 3 seconds
+    // Remove after 5 seconds
     setTimeout(() => {
       overlay.remove();
-    }, 3000);
+    }, 5000);
   }
 
   async upgradeHealth() {
@@ -514,6 +540,7 @@ class HTMLMenuManager {
       'Untouchable': ['untouchable1', 'untouchable2', 'untouchable3', 'untouchable4', 'untouchable5', 'untouchable6'],
       'Speed Demon': ['speedDemon1', 'speedDemon2', 'speedDemon3', 'speedDemon4'],
       'Sharpshooter': ['sharpshooter1', 'sharpshooter2', 'sharpshooter3', 'sharpshooter4', 'sharpshooter5', 'sharpshooter6'],
+      'Welcome': ['login'],
       'Simple Achievements': ['firstBlood', 'halfwayThere', 'bossSlayer', 'survivor', 'notEvenClose', 'rich', 'tank', 'glassCannon']
     };
 
@@ -559,11 +586,11 @@ class HTMLMenuManager {
 
           const target = questId === 'untouchable1' ? 1 : questId === 'untouchable2' ? 10 :
             questId === 'untouchable3' ? 15 : questId === 'untouchable4' ? 25 :
-              questId === 'untouchable5' ? 50 : 11;
+              questId === 'untouchable5' ? 42 : 8;
 
           if (questId === 'untouchable6') {
-            const specificLevels = noDamageLevels.filter(l => l >= 40 && l <= 50);
-            progress = `${specificLevels.length}/11 (Levels 40-50)`;
+            const specificLevels = noDamageLevels.filter(l => l >= 35 && l <= 42);
+            progress = `${specificLevels.length}/8 (Levels 35-42)`;
             levels = `Complete: ${specificLevels.join(', ') || 'None'}`;
           } else {
             progress = `${noDamageLevels.length}/${target} different levels`;
@@ -588,8 +615,8 @@ class HTMLMenuManager {
             questId === 'speedDemon3' ? 20 : 10;
 
           if (questId === 'speedDemon4') {
-            const lateLevels = fastLevels.filter(l => l >= 40 && l <= 50);
-            progress = `${lateLevels.length}/11 (Levels 40-50)`;
+            const lateLevels = fastLevels.filter(l => l >= 35 && l <= 42);
+            progress = `${lateLevels.length}/8 (Levels 35-42)`;
             levels = `Complete: ${lateLevels.join(', ') || 'None'}`;
           } else {
             progress = `${fastLevels.length}/${target} different levels`;
@@ -630,7 +657,7 @@ class HTMLMenuManager {
               above50Levels.push(i);
             }
           }
-          progress = `${above50Levels.length}/50 levels above 50% HP`;
+          progress = `${above50Levels.length}/42 levels above 50% HP`;
           if (above50Levels.length > 0 && above50Levels.length <= 20) {
             levels = `Levels: ${above50Levels.join(', ')}`;
           }

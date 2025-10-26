@@ -1,5 +1,32 @@
 # Ignore these files for Cursor
+
+# Dependencies
 node_modules/
+
+# System files
 *.log
 .DS_Store
+
+# Icons (rarely need to edit these)
+icons/
+*.png
+*.jpg
+*.ico
+
+# Documentation (reference only, don't load in context)
+*.md
+
+# Temporary/test files
+tmp.js
+tmp2.js
+tmp3.js
+test*.js
+
+# Build outputs (if any)
+dist/
+build/
+
+# Large data files
+*.json.bak
+*.json.old
 

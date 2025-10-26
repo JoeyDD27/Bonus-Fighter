@@ -860,6 +860,12 @@ class UIManager {
     ctx.fillStyle = '#4dabf7';
     ctx.font = 'bold 20px Arial';
     ctx.fillText('GRIND MODE', width / 2, 25);
+
+    // Auto-aim indicator (always visible in grind mode)
+    ctx.textAlign = 'left';
+    ctx.fillStyle = player.autoMode ? '#ffd43b' : '#868e96';
+    ctx.font = 'bold 14px Arial';
+    ctx.fillText('[Q] Auto-Aim: ' + (player.autoMode ? 'ON' : 'OFF'), barX, activeAbilityY || cdY + 20);
   }
 
   drawGrindBreakScreen(wave, breakTimer) {
