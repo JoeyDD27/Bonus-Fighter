@@ -432,9 +432,9 @@ class GameEngine {
     console.log('Starting wave', this.grindWave, 'with', bossCount, 'boss');
 
     // Determine boss level range based on wave number (every 5 waves = new boss tier)
-    const tier = Math.floor((this.grindWave - 1) / 5); // 0-5 = tier 0, 6-10 = tier 1, etc.
-    const minLevel = Math.min(tier * 5 + 1, 26); // Max starts at 26
-    const maxLevel = Math.min((tier + 1) * 5, 30); // Max ends at 30
+    const tier = Math.floor((this.grindWave - 1) / 5);
+    const minLevel = Math.min(tier * 5 + 1, 46); // Max starts at 46
+    const maxLevel = Math.min((tier + 1) * 5, 50); // Max ends at 50
 
     console.log('Wave', this.grindWave, '- Boss range:', minLevel, 'to', maxLevel);
 
