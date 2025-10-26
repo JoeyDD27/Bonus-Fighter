@@ -17,7 +17,7 @@ class StorageManager {
       equippedAbilities: {
         healing: null,  // 'healthPotion', 'shield', 'vampire'
         special: null,  // 'laser', 'bulletStorm', 'timeSlow'
-        passive: null   // 'autoHeal', 'comboDamage', 'berserker'
+        passive: null   // 'autoHeal', 'tactician', 'Revenge'
       },
       upgrades: {
         maxHealth: 0,      // 0-5 levels

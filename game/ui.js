@@ -364,6 +364,15 @@ class UIManager {
       activeAbilityY += 15;
     }
 
+    // Burn status indicator
+    if (player.burning && player.burnDuration > 0) {
+      const timeLeft = player.burnDuration / 60;
+      ctx.fillStyle = '#ff6600';
+      ctx.font = 'bold 12px Arial';
+      ctx.fillText(`🔥 Burning: ${timeLeft.toFixed(1)}s`, barX, activeAbilityY);
+      activeAbilityY += 15;
+    }
+
     // Auto-mode indicator
     if (player.autoMode) {
       ctx.fillStyle = '#ffd43b';

@@ -49,6 +49,11 @@ class Player {
     this.poisoned = false;
     this.poisonDuration = 0;
     this.poisonDamagePerTick = 0;
+
+    // Burn status (fire DoT)
+    this.burning = false;
+    this.burnDuration = 0;
+    this.burnDamagePerTick = 0;
   }
 
   update(keys, canvasWidth, canvasHeight) {
@@ -64,6 +69,17 @@ class Player {
       }
       if (this.poisonDuration <= 0) {
         this.poisoned = false;
+      }
+    }
+
+    // Handle burn damage over time
+    if (this.burning && this.burnDuration > 0) {
+      this.burnDuration--;
+      if (this.burnDuration % 30 === 0) {  // Damage every 0.5 seconds
+        this.takeDamage(this.burnDamagePerTick);
+      }
+      if (this.burnDuration <= 0) {
+        this.burning = false;
       }
     }
 
@@ -155,6 +171,12 @@ class Player {
     this.poisoned = true;
     this.poisonDuration = Math.max(this.poisonDuration, duration);  // Extend duration if already poisoned
     this.poisonDamagePerTick = damagePerTick;
+  }
+
+  applyBurn(duration, damagePerTick) {
+    this.burning = true;
+    this.burnDuration = Math.max(this.burnDuration, duration);  // Extend duration if already burning
+    this.burnDamagePerTick = damagePerTick;
   }
 
   heal(amount) {

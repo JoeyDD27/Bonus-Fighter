@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Bonus Fighter",
   "version": "2.0.0",
-  "description": "Fight through 30 unique boss battles! Earn coins, buy abilities, and upgrade your stats!",
+  "description": "Fight through 50 unique boss battles! Earn coins, buy abilities, and upgrade your stats!",
   "action": {
     "default_popup": "popup.html",
     "default_icon": {

@@ -15,6 +15,9 @@ class Projectile {
     this.poison = false;  // Flag for poison bullets
     this.poisonDuration = 0;
     this.poisonDamage = 0;
+    this.burn = false;  // Flag for burn/fire bullets
+    this.burnDuration = 0;
+    this.burnDamage = 0;
 
     // Use custom color if forceColor is true, otherwise use damage-based color
     if (forceColor || isPlayerBullet) {

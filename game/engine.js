@@ -23,6 +23,8 @@ class GameEngine {
     this.boss = null;
     this.playerBullets = [];
     this.enemyBullets = [];
+    this.ghosts = [];  // Ghost minions
+    this.firePools = [];  // Fire pools from Dragon
 
     // Systems
     this.storage = new StorageManager();
@@ -348,9 +350,11 @@ class GameEngine {
     // Create boss with scaling based on player upgrades
     this.boss = BossFactory.createBoss(level, upgrades);
 
-    // Clear bullets
+    // Clear bullets, ghosts, and fire pools
     this.playerBullets = [];
     this.enemyBullets = [];
+    this.ghosts = [];  // Clear ghost minions
+    this.firePools = [];  // Clear fire pools
 
     // Reset session stats
     this.sessionStats = {
@@ -385,9 +389,10 @@ class GameEngine {
     const equippedAbilities = this.gameData.equippedAbilities || {};
     this.player = new Player(this.width / 2, this.height - 100, upgrades, equippedAbilities);
 
-    // Clear bullets
+    // Clear bullets and ghosts
     this.playerBullets = [];
     this.enemyBullets = [];
+    this.ghosts = [];
 
     // Reset abilities
     this.abilityManager.cooldowns = { healing: 0, special: 0 };
@@ -439,8 +444,9 @@ class GameEngine {
     this.boss = this.grindBosses[0]; // Set first boss as main boss
     console.log('Main boss set:', this.boss.name);
 
-    // Clear bullets
+    // Clear bullets and ghosts
     this.enemyBullets = [];
+    this.ghosts = [];
   }
 
   updatePlaying() {
@@ -548,6 +554,34 @@ class GameEngine {
         this.applyVampireHeal(laserDamage);
       }
 
+      // Necromancer ghost spawning (1 ghost every 5 seconds, max 4)
+      if (this.boss.summonsGhosts) {
+        this.boss.ghostSpawnTimer++;
+        if (this.boss.ghostSpawnTimer >= 300 && this.ghosts.length < 4) {  // 300 frames = 5 seconds
+          console.log('Spawning ghost! Current:', this.ghosts.length);
+          const offsetAngle = Math.random() * Math.PI * 2;
+          const spawnX = this.boss.x + Math.cos(offsetAngle) * 50;
+          const spawnY = this.boss.y + Math.sin(offsetAngle) * 50;
+          this.ghosts.push(new Ghost(spawnX, spawnY));
+          this.boss.ghostSpawnTimer = 0;  // Reset timer
+          console.log('Ghosts after spawn:', this.ghosts.length);
+        }
+      }
+
+      // Dragon fire pool spawning (2-4 pools every 2 seconds)
+      if (this.boss.spawnsFirePools) {
+        this.boss.firePoolTimer++;
+        if (this.boss.firePoolTimer >= 120) {  // 120 frames = 2 seconds
+          const poolCount = 2 + this.boss.phase;  // 3, 4, 5 pools per spawn
+          for (let i = 0; i < poolCount; i++) {
+            const poolX = Math.random() * (this.width - 100) + 50;
+            const poolY = Math.random() * (this.height - 200) + 100;
+            this.firePools.push(new FirePool(poolX, poolY, 50, 360, 30));  // 30 HP/sec (same as ghosts)
+          }
+          this.boss.firePoolTimer = 0;
+        }
+      }
+
       // Boss shooting (unless disarmed)
       if (!this.abilityManager.isDisarmActive()) {
         const newBullets = this.boss.shoot(this.player);
@@ -557,10 +591,68 @@ class GameEngine {
       }
     }
 
+    // Update fire pools
+    for (let i = this.firePools.length - 1; i >= 0; i--) {
+      const pool = this.firePools[i];
+      pool.update();
+
+      // Check if player is standing in fire
+      if (pool.checkPlayerInside(this.player)) {
+        const poolDamage = pool.getDamageThisFrame();
+        if (poolDamage > 0) {
+          this.player.takeDamage(poolDamage);
+        }
+      }
+
+      // Remove expired pools
+      if (pool.isExpired()) {
+        this.firePools.splice(i, 1);
+      }
+    }
+
+    // Update ghosts
+    for (let i = this.ghosts.length - 1; i >= 0; i--) {
+      const ghost = this.ghosts[i];
+      const ghostDamage = ghost.update(this.player);
+
+      // Apply ghost damage if in range
+      if (ghostDamage > 0) {
+        this.player.takeDamage(ghostDamage / 60);  // 30 HP/sec = 0.5 HP/frame
+      }
+
+      // Ghost shooting
+      const ghostBullet = ghost.shoot(this.player);
+      if (ghostBullet) {
+        this.enemyBullets.push(ghostBullet);
+      }
+
+      // Remove dead ghosts
+      if (ghost.isDead()) {
+        this.ghosts.splice(i, 1);
+      }
+    }
+
     // Update player bullets
     for (let i = this.playerBullets.length - 1; i >= 0; i--) {
       const bullet = this.playerBullets[i];
       bullet.update(this.boss);  // Pass boss for homing bullets
+
+      // Check collision with ghosts first
+      let hitGhost = false;
+      for (const ghost of this.ghosts) {
+        if (bullet.checkCollision(ghost)) {
+          ghost.takeDamage(bullet.damage);
+          this.applyVampireHeal(bullet.damage);
+          hitGhost = true;
+          break;
+        }
+      }
+
+      if (hitGhost) {
+        this.playerBullets.splice(i, 1);
+        this.sessionStats.shotsHit++;
+        continue;
+      }
 
       // Check collision with boss(es)
       let hitBoss = false;
@@ -613,6 +705,11 @@ class GameEngine {
         // Apply poison effect if bullet has poison
         if (bullet.poison) {
           this.player.applyPoison(bullet.poisonDuration, bullet.poisonDamage);
+        }
+
+        // Apply burn effect if bullet has burn
+        if (bullet.burn) {
+          this.player.applyBurn(bullet.burnDuration, bullet.burnDamage);
         }
 
         // Auto-activate Shield if player would die and shield is equipped + ready
@@ -926,9 +1023,15 @@ class GameEngine {
       this.player.draw(this.ctx);
     }
 
+    // Draw fire pools (under everything)
+    this.firePools.forEach(pool => pool.draw(this.ctx));
+
     // Draw bullets
     this.playerBullets.forEach(bullet => bullet.draw(this.ctx));
     this.enemyBullets.forEach(bullet => bullet.draw(this.ctx));
+
+    // Draw ghosts
+    this.ghosts.forEach(ghost => ghost.draw(this.ctx));
 
     // Draw HUD
     if (this.player) {

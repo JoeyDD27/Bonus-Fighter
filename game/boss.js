@@ -30,6 +30,12 @@ class Boss {
     // Custom behavior function
     this.updateBehavior = config.updateBehavior || this.defaultBehavior.bind(this);
     this.shootPattern = config.shootPattern || this.defaultShoot.bind(this);
+
+    // Special abilities
+    this.summonsGhosts = config.summonsGhosts || false;
+    this.ghostSpawnTimer = 0;  // Track time for ghost spawning
+    this.spawnsFirePools = config.spawnsFirePools || false;
+    this.firePoolTimer = 0;
   }
 
   generateRedShade(level) {

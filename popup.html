@@ -1,228 +1,53 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Boss Fighter</title>
-  <link rel="stylesheet" href="popup.css">
+  <title>Bonus Fighter Launcher</title>
+  <style>
+    body {
+      width: 300px;
+      height: 200px;
+      margin: 0;
+      padding: 20px;
+      background: #0f0f1e;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: Arial, sans-serif;
+    }
+
+    h1 {
+      color: #4dabf7;
+      font-size: 28px;
+      margin-bottom: 30px;
+    }
+
+    button {
+      width: 250px;
+      padding: 20px;
+      font-size: 22px;
+      font-weight: bold;
+      background: #51cf66;
+      color: #000;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    button:hover {
+      background: #69db7c;
+      transform: scale(1.05);
+    }
+  </style>
 </head>
 
 <body>
-  <div id="game-container">
-    <!-- Canvas for gameplay only -->
-    <canvas id="gameCanvas" width="600" height="600"></canvas>
+  <h1>BONUS FIGHTER</h1>
+  <button id="launch-btn">🎮 Launch Game</button>
 
-    <!-- HTML Menu Screens -->
-    <div id="mainMenu" class="menu-screen">
-      <h1>BONUS FIGHTER</h1>
-      <div class="menu-buttons">
-        <button id="btn-play" class="menu-btn">Play</button>
-        <button id="btn-grind" class="menu-btn">Grind Mode</button>
-        <button id="btn-fullscreen" class="menu-btn" style="background: #ffd43b; color: #000;">🖥️ Fullscreen
-          Mode</button>
-        <button id="btn-shop" class="menu-btn">Shop</button>
-        <button id="btn-quests" class="menu-btn">Quests</button>
-        <button id="btn-level-select" class="menu-btn">Level Select</button>
-        <button id="btn-stats" class="menu-btn">Stats</button>
-        <button id="btn-how-to-play" class="menu-btn">How to Play</button>
-      </div>
-    </div>
-
-    <!-- Shop Screen -->
-    <div id="shopScreen" class="menu-screen hidden">
-      <h1>SHOP</h1>
-      <div id="shopCoins" class="coins-display">💰 0 Coins</div>
-      <p class="shop-caption">You can only equip ONE ability of each type</p>
-
-      <!-- Healing Abilities -->
-      <div class="shop-section">
-        <h2>HEALING (E Key) - Equip 1</h2>
-        <div class="ability-grid">
-          <div class="ability-box" data-ability="healthPotion" data-type="healing">
-            <h3>Health Potion</h3>
-            <p>Heal 50% of max HP</p>
-            <span class="ability-status">💰 100</span>
-          </div>
-          <div class="ability-box" data-ability="shield" data-type="healing">
-            <h3>Shield</h3>
-            <p>Set HP to 5% + invincible 5s (auto-save)</p>
-            <span class="ability-status">💰 100</span>
-          </div>
-          <div class="ability-box" data-ability="vampire" data-type="healing">
-            <h3>Vampire</h3>
-            <p>Lifesteal 50% for 6s</p>
-            <span class="ability-status">💰 100</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Special Abilities -->
-      <div class="shop-section">
-        <h2>SPECIAL (R Key) - Equip 1</h2>
-        <div class="ability-grid">
-          <div class="ability-box" data-ability="laser" data-type="special">
-            <h3>Laser Beam</h3>
-            <p>Auto-aim laser for 4s</p>
-            <span class="ability-status">💰 100</span>
-          </div>
-          <div class="ability-box" data-ability="bulletStorm" data-type="special">
-            <h3>Bullet Storm</h3>
-            <p>Fire 12 bouncing bullets</p>
-            <span class="ability-status">💰 100</span>
-          </div>
-          <div class="ability-box" data-ability="disarm" data-type="special">
-            <h3>Disarm</h3>
-            <p>Clear bullets & silence boss 7s</p>
-            <span class="ability-status">💰 100</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Passive Abilities -->
-      <div class="shop-section">
-        <h2>PASSIVE (Always On) - Equip 1</h2>
-        <div class="ability-grid">
-          <div class="ability-box" data-ability="autoHeal" data-type="passive">
-            <h3>Auto-Heal</h3>
-            <p>Regen 5% max HP/s after 1s no damage</p>
-            <span class="ability-status">💰 100</span>
-          </div>
-          <div class="ability-box" data-ability="tactician" data-type="passive">
-            <h3>Tactician</h3>
-            <p>+18% dmg, +10% HP, +15% speed, heal 3%/3s</p>
-            <span class="ability-status">💰 100</span>
-          </div>
-          <div class="ability-box" data-ability="revenge" data-type="passive">
-            <h3>Revenge</h3>
-            <p>Deal 3-10x damage back (scales)</p>
-            <span class="ability-status">💰 100</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Stat Upgrades -->
-      <div class="shop-section">
-        <h2>STAT UPGRADES</h2>
-        <div class="stat-upgrades">
-          <div class="stat-box">
-            <h3>Max Health</h3>
-            <p id="healthValue">100/320</p>
-            <p id="healthLevel">Level 0/11</p>
-            <button id="btn-upgrade-health" class="upgrade-btn">+ <span id="healthCost">100💰</span></button>
-          </div>
-          <div class="stat-box">
-            <h3>Bullet Damage</h3>
-            <p id="damageValue">25/80</p>
-            <p id="damageLevel">Level 0/11</p>
-            <button id="btn-upgrade-damage" class="upgrade-btn">+ <span id="damageCost">100💰</span></button>
-          </div>
-        </div>
-      </div>
-
-      <button id="btn-shop-back" class="back-btn">Back to Menu</button>
-    </div>
-
-    <!-- Other menu screens will be added similarly -->
-    <!-- Quests Screen -->
-    <div id="questsScreen" class="menu-screen hidden">
-      <h1>QUESTS & ACHIEVEMENTS</h1>
-      <div id="questsContent" class="quests-container"></div>
-      <button id="btn-quests-back" class="back-btn">Back to Menu</button>
-    </div>
-
-    <div id="levelSelectScreen" class="menu-screen hidden">
-      <h1>SELECT LEVEL</h1>
-      <div id="levelGrid" class="level-grid"></div>
-      <button id="btn-levelselect-back" class="back-btn">Back to Menu</button>
-    </div>
-
-    <div id="statsScreen" class="menu-screen hidden">
-      <h1>SPEEDRUN RECORDS</h1>
-      <div id="statsContent"></div>
-      <button id="btn-stats-back" class="back-btn">Back to Menu</button>
-    </div>
-
-    <div id="howToPlayScreen" class="menu-screen hidden">
-      <h1>HOW TO PLAY</h1>
-      <div class="instructions">
-        <h2>MOVEMENT:</h2>
-        <p>Use WASD or Arrow Keys to move</p>
-        <h2>AIMING:</h2>
-        <p>Move your mouse to aim</p>
-        <h2>SHOOTING:</h2>
-        <p>Press SPACE or Click to shoot</p>
-        <h2>ABILITIES:</h2>
-        <p>Press E for Healing ability</p>
-        <p>Press R for Special ability</p>
-        <p>Press Q to toggle Auto-Aim/Shoot</p>
-        <h2>GOAL:</h2>
-        <p>Defeat all 30 bosses!</p>
-        <p>Each boss has unique attacks</p>
-        <p>Avoid red bullets and destroy the boss</p>
-      </div>
-      <button id="btn-howtoplay-back" class="back-btn">Back to Menu</button>
-    </div>
-
-    <!-- Victory Overlay (shows over canvas) -->
-    <div id="victoryOverlay" class="game-overlay hidden">
-      <div class="overlay-content">
-        <h1 style="color: #51cf66;">VICTORY!</h1>
-        <p id="victoryLevel" class="victory-text">Level 1 Complete</p>
-        <p id="victoryTime" class="victory-text">Time: 0.00s</p>
-        <p id="victoryBest" class="victory-text"></p>
-        <p id="victoryCoins" class="victory-coins"></p>
-        <div class="button-row">
-          <button id="btn-victory-next" class="game-btn green">Next Level</button>
-          <button id="btn-victory-shop" class="game-btn blue">Shop</button>
-        </div>
-        <button id="btn-victory-retry" class="game-btn gray">Retry</button>
-      </div>
-    </div>
-
-    <!-- Defeat Overlay (shows over canvas) -->
-    <div id="defeatOverlay" class="game-overlay hidden">
-      <div class="overlay-content">
-        <h1 style="color: #ff6b6b;">DEFEATED</h1>
-        <div class="button-row">
-          <button id="btn-defeat-retry" class="game-btn green">Retry</button>
-          <button id="btn-defeat-shop" class="game-btn blue">Shop</button>
-        </div>
-        <button id="btn-defeat-menu" class="game-btn gray">Menu</button>
-      </div>
-    </div>
-
-    <!-- Grind Mode Game Over Overlay -->
-    <div id="grindOverlay" class="game-overlay hidden">
-      <div class="overlay-content">
-        <h1 style="color: #ffd43b;">GRIND MODE COMPLETE</h1>
-        <p id="grindWaves" class="victory-text">Waves Survived: 0</p>
-        <p id="grindCoins" class="victory-coins">+0 💰</p>
-        <p id="grindBest" class="victory-text"></p>
-        <div class="button-row">
-          <button id="btn-grind-retry" class="game-btn green">Play Again</button>
-          <button id="btn-grind-shop" class="game-btn blue">Shop</button>
-        </div>
-        <button id="btn-grind-menu" class="game-btn gray">Menu</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Load game scripts -->
-  <script src="game/bulletColors.js"></script>
-  <script src="game/storage.js"></script>
-  <script src="game/quests.js"></script>
-  <script src="game/abilities.js"></script>
-  <script src="game/shop.js"></script>
-  <script src="game/animations.js"></script>
-  <script src="game/projectile.js"></script>
-  <script src="game/player.js"></script>
-  <script src="game/boss.js"></script>
-  <script src="game/bosses.js"></script>
-  <script src="game/controls.js"></script>
-  <script src="game/ui.js"></script>
-  <script src="game/engine.js"></script>
-  <script src="game/htmlMenus.js"></script>
   <script src="popup.js"></script>
 </body>
 

@@ -1068,26 +1068,18 @@ class BossFactory {
         name: 'Necromancer',
         size: 65,
         health: 9000,
-        shootDelay: 50,
+        shootDelay: 90,  // Slower since summons ghosts
         maxPhases: 3,
+        summonsGhosts: true,  // Flag for ghost summoning
         shootPattern: function (player) {
-          // Ghost bullets (slow homing) + aimbot
+          // Summons 2 ghosts + aimbot
           const bullets = [];
-          const ghostCount = 10 + this.phase * 5; // 15, 20, 25
-
-          for (let i = 0; i < ghostCount; i++) {
-            const angle = (i / ghostCount) * Math.PI * 2;
-            const bullet = new Projectile(this.x, this.y, angle, 6, 15, '#8b00ff', 16, false, true);
-            bullet.homing = true;
-            bullet.homingStrength = 0.008;  // Very slow homing (was 0.025)
-            bullets.push(bullet);
-          }
 
           // AIMBOT dark magic bolt
           const dx = player.x - this.x;
           const dy = player.y - this.y;
           const aimAngle = Math.atan2(dy, dx);
-          bullets.push(new Projectile(this.x, this.y, aimAngle, 12, 18, '#ff00ff', 20, false, true));
+          bullets.push(new Projectile(this.x, this.y, aimAngle, 11, 18, '#ff00ff', 18, false, true));
 
           return bullets;
         },
@@ -1102,28 +1094,30 @@ class BossFactory {
         name: 'Dragon',
         size: 75,
         health: 9500,
-        shootDelay: 55,
+        shootDelay: 90,
         maxPhases: 3,
+        spawnsFirePools: true,
         shootPattern: function (player) {
-          // Flame breath cone + fireballs
+          // Aimbot fire breath
           const bullets = [];
           const dx = player.x - this.x;
           const dy = player.y - this.y;
           const angle = Math.atan2(dy, dx);
 
-          // Flame breath (wide cone)
-          const coneWidth = this.phase * 8; // 8, 16, 24 bullets
-          for (let i = 0; i < coneWidth; i++) {
-            const spread = (i - coneWidth / 2) * 0.12;
-            bullets.push(new Projectile(this.x, this.y, angle + spread, 11, 18, '#ff4400', 18, false));
+          // Fire aimbot bullets
+          const count = 1 + this.phase;  // 2, 3, 4 bullets
+          for (let i = 0; i < count; i++) {
+            const spread = (i - count / 2) * 0.2;
+            bullets.push(new Projectile(this.x, this.y, angle + spread, 10, 18, '#ff4400', 19, false, true));
           }
           return bullets;
         },
         updateBehavior: function (player, w, h) {
-          // Swooping dives
+          // Aggressive chase
           const dx = player.x - this.x;
-          this.vx = Math.sign(dx) * 3 + Math.sin(this.behaviorTimer * 0.04) * 2;
-          this.vy = Math.cos(this.behaviorTimer * 0.06) * 2;
+          const dy = player.y - this.y;
+          this.vx = Math.sign(dx) * 2.5 + Math.sin(this.behaviorTimer * 0.03) * 1;
+          this.vy = Math.cos(this.behaviorTimer * 0.04) * 1.5;
         }
       },
 
@@ -1213,24 +1207,24 @@ class BossFactory {
         name: 'Angel of Death',
         size: 68,
         health: 11000,
-        shootDelay: 50,
+        shootDelay: 70,  // Slower (was 50)
         maxPhases: 4,
         shootPattern: function (player) {
-          // Divine judgment
+          // Divine judgment (nerfed)
           const bullets = [];
           const dx = player.x - this.x;
           const dy = player.y - this.y;
           const angle = Math.atan2(dy, dx);
 
-          const wingsCount = 20 + this.phase * 6; // 26, 32, 38, 44
+          const wingsCount = 10 + this.phase * 6; // 16, 22, 28, 34 (was 26, 32, 38, 44)
           for (let i = 0; i < wingsCount; i++) {
             const a = (i / wingsCount) * Math.PI * 2;
-            bullets.push(new Projectile(this.x, this.y, a, 9, 15, '#ffd700', 18, false));
+            bullets.push(new Projectile(this.x, this.y, a, 7, 15, '#ffd700', 18, false, true));  // Slower (was 9)
           }
 
-          // Holy beam
-          for (let i = -2; i <= 2; i++) {
-            bullets.push(new Projectile(this.x, this.y, angle + i * 0.15, 13, 14, '#ffffff', 19, false));
+          // Holy beam (fewer)
+          for (let i = -1; i <= 1; i++) {  // 3 instead of 5
+            bullets.push(new Projectile(this.x, this.y, angle + i * 0.2, 10, 14, '#ffffff', 19, false, true));  // Slower (was 13)
           }
           return bullets;
         }
@@ -1268,21 +1262,29 @@ class BossFactory {
         shootDelay: 50,
         maxPhases: 5,  // Revives once!
         shootPattern: function (player) {
-          // Fire rebirth patterns
+          // Fire rebirth patterns with BURN effect
           const bullets = [];
           const fireCount = 18 + this.phase * 4; // 22, 26, 30, 34, 38
 
           for (let i = 0; i < fireCount; i++) {
             const angle = (i / fireCount) * Math.PI * 2 + this.behaviorTimer * 0.06;
-            bullets.push(new Projectile(this.x, this.y, angle, 8, 16, '#ff6600', 18, false));
+            const bullet = new Projectile(this.x, this.y, angle, 8, 16, '#ff6600', 18, false, true);
+            bullet.burn = true;
+            bullet.burnDuration = 240;  // 4 seconds of burn
+            bullet.burnDamage = 5;  // 5 damage per tick (every 0.5s)
+            bullets.push(bullet);
           }
 
-          // Aimed fire blast
+          // Aimed fire blast (STRONG BURN)
           const dx = player.x - this.x;
           const dy = player.y - this.y;
           const aimAngle = Math.atan2(dy, dx);
           for (let i = -1; i <= 1; i++) {
-            bullets.push(new Projectile(this.x, this.y, aimAngle + i * 0.3, 12, 18, '#ff3300', 20, false));
+            const fireball = new Projectile(this.x, this.y, aimAngle + i * 0.3, 12, 18, '#ff3300', 20, false, true);
+            fireball.burn = true;
+            fireball.burnDuration = 360;  // 6 seconds
+            fireball.burnDamage = 8;  // 8 damage per tick (STRONG!)
+            bullets.push(fireball);
           }
           return bullets;
         },

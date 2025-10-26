@@ -20,8 +20,8 @@
 
     #game-container {
       position: relative;
-      width: 900px;
-      height: 900px;
+      width: 700px;
+      height: 700px;
       background: #0f0f1e;
       border: 3px solid #16213e;
       border-top: none;
@@ -61,8 +61,8 @@
       position: absolute;
       top: 0;
       left: 0;
-      width: 900px;
-      height: 900px;
+      width: 700px;
+      height: 700px;
       background: #0f0f1e;
       overflow-y: auto;
       overflow-x: hidden;
@@ -110,13 +110,13 @@
       transform: scale(1.05);
     }
 
-    /* Game overlays match 900x900 canvas size */
+    /* Game overlays match 700x700 canvas size */
     .game-overlay {
       position: absolute;
       top: 0;
       left: 0;
-      width: 900px;
-      height: 900px;
+      width: 700px;
+      height: 700px;
       background: rgba(0, 0, 0, 0.85);
       display: flex;
       align-items: center;
@@ -186,41 +186,39 @@
       color: #fff;
     }
   </style>
-  <link rel="stylesheet" href="popup.css">
   <style>
-    /* Override popup.css to match 900x900 */
+    /* Override to match 700x700 */
     #game-container {
-      width: 900px !important;
-      height: 900px !important;
+      width: 700px !important;
+      height: 700px !important;
     }
 
     #gameCanvas {
-      width: 900px !important;
-      height: 900px !important;
+      width: 700px !important;
+      height: 700px !important;
     }
 
     .menu-screen {
-      width: 900px !important;
-      height: 900px !important;
+      width: 700px !important;
+      height: 700px !important;
     }
 
     .game-overlay {
-      width: 900px !important;
-      height: 900px !important;
+      width: 700px !important;
+      height: 700px !important;
     }
   </style>
 </head>
 
 <body>
   <div id="game-container">
-    <canvas id="gameCanvas" width="900" height="900"></canvas>
+    <canvas id="gameCanvas" width="700" height="700"></canvas>
 
     <!-- Same menu structure as popup.html but won't duplicate here for brevity -->
     <!-- The game will use the same JavaScript files -->
 
     <div id="mainMenu" class="menu-screen">
       <h1>BONUS FIGHTER</h1>
-      <p style="text-align: center; color: #ffd43b; font-size: 24px;">🖥️ FULLSCREEN MODE</p>
       <div class="menu-buttons">
         <button id="btn-play" class="menu-btn">Play</button>
         <button id="btn-grind" class="menu-btn">Grind Mode</button>
@@ -422,13 +420,15 @@
   <script src="game/animations.js"></script>
   <script src="game/projectile.js"></script>
   <script src="game/player.js"></script>
+  <script src="game/ghost.js"></script>
+  <script src="game/firepool.js"></script>
   <script src="game/boss.js"></script>
   <script src="game/bosses.js"></script>
   <script src="game/controls.js"></script>
   <script src="game/ui.js"></script>
   <script src="game/engine.js"></script>
   <script src="game/htmlMenus.js"></script>
-  <script src="popup.js"></script>
+  <script src="init.js"></script>
 </body>
 
 </html>
