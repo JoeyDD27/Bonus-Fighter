@@ -1253,6 +1253,11 @@ class GameEngine {
     this.ctx.lineTo(this.width, this.height / 2);
     this.ctx.stroke();
 
+    // Draw laser beam visual (before entities)
+    if (this.player && this.abilityManager && this.abilityManager.isLaserActive()) {
+      this.ui.drawLaserBeam(this.player, this.boss, this.cerberusHeads);
+    }
+
     // Draw boss(es)
     if (this.isGrindMode) {
       this.grindBosses.forEach(boss => boss.draw(this.ctx));

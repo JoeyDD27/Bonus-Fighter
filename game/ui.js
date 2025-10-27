@@ -588,6 +588,58 @@ class UIManager {
     ctx.fillText('Click for menu', width / 2, height / 2 + 80);
   }
 
+  drawLaserBeam(player, boss, cerberusHeads = []) {
+    const ctx = this.ctx;
+
+    // Determine laser target (prioritize alive Cerberus heads)
+    const aliveHeads = cerberusHeads.filter(h => !h.isDead());
+    const target = aliveHeads.length > 0 ? aliveHeads[0] : boss;
+
+    if (!target) return;
+
+    // Draw wide pulsing laser beam
+    ctx.save();
+
+    // Pulsing effect
+    const pulse = Math.sin(Date.now() / 100) * 0.3 + 0.7;  // 0.4-1.0
+
+    // Outer glow
+    ctx.globalAlpha = 0.3 * pulse;
+    ctx.strokeStyle = '#74c0fc';
+    ctx.lineWidth = 20;
+    ctx.beginPath();
+    ctx.moveTo(player.x, player.y);
+    ctx.lineTo(target.x, target.y);
+    ctx.stroke();
+
+    // Middle beam
+    ctx.globalAlpha = 0.6 * pulse;
+    ctx.strokeStyle = '#4dabf7';
+    ctx.lineWidth = 12;
+    ctx.beginPath();
+    ctx.moveTo(player.x, player.y);
+    ctx.lineTo(target.x, target.y);
+    ctx.stroke();
+
+    // Core beam
+    ctx.globalAlpha = 0.9 * pulse;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(player.x, player.y);
+    ctx.lineTo(target.x, target.y);
+    ctx.stroke();
+
+    // Target indicator (circle on hit point)
+    ctx.globalAlpha = 0.5 * pulse;
+    ctx.fillStyle = '#74c0fc';
+    ctx.beginPath();
+    ctx.arc(target.x, target.y, 15, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
   drawTutorialText(tutorialStep) {
     const ctx = this.ctx;
     const width = this.canvas.width;
