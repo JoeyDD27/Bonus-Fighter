@@ -1046,6 +1046,9 @@ class GameEngine {
   async onVictory() {
     this.state = 'VICTORY';
 
+    // Clear all fire pools on victory
+    this.firePools = [];
+
     // Track if completed without damage
     const noDamageTaken = (this.player.health >= this.startingHealth);
 
@@ -1093,6 +1096,9 @@ class GameEngine {
 
   async onDefeat() {
     this.state = 'DEFEAT';
+
+    // Clear all fire pools on defeat
+    this.firePools = [];
 
     // Update stats (reset consecutive wins)
     await this.storage.updateStats({
@@ -1150,6 +1156,9 @@ class GameEngine {
   async onGrindModeEnd() {
     this.state = 'DEFEAT';
     const wavesSurvived = this.grindWave - 1; // Last wave wasn't completed
+
+    // Clear all fire pools on grind mode end
+    this.firePools = [];
 
     // Update best wave (coins already awarded during gameplay)
     const data = await this.storage.loadData();
@@ -1237,7 +1246,7 @@ class GameEngine {
       this.state === 'VICTORY' || this.state === 'DEFEAT' ||
       this.state === 'GRIND_MODE' || this.state === 'GRIND_BREAK') {
       // Clear canvas
-      this.ctx.fillStyle = '#0f0f1e';
+      this.ctx.fillStyle = '#222838';
       this.ctx.fillRect(0, 0, this.width, this.height);
       this.renderGame();
     }
@@ -1246,7 +1255,7 @@ class GameEngine {
 
   renderGame() {
     // Draw game area separator
-    this.ctx.strokeStyle = '#16213e';
+    this.ctx.strokeStyle = '#3a4558';
     this.ctx.lineWidth = 2;
     this.ctx.beginPath();
     this.ctx.moveTo(0, this.height / 2);

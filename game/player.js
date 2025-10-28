@@ -21,7 +21,7 @@ class Player {
     this.baseBulletDamage = Math.floor((25 + (upgrades.bulletDamage || 0) * 5) * (1 + tacticianBonus.damage));
     this.bulletDamage = this.baseBulletDamage;
 
-    this.color = '#4dabf7';
+    this.color = '#8bc9ff';
 
     // Movement
     this.vx = 0;
@@ -98,7 +98,7 @@ class Player {
       this.petrifiedDuration--;
       if (this.petrifiedDuration <= 0) {
         this.petrified = false;
-        this.color = '#4dabf7';  // Back to blue
+        this.color = '#8bc9ff';  // Back to blue
       }
     }
 

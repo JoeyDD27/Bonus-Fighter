@@ -11,6 +11,9 @@ class CerberusHead {
     this.shootCooldown = 0;
     this.shootDelay = 90;  // All heads shoot together
 
+    // 1 second attack delay (60 frames at 60 FPS)
+    this.attackDelay = 60;
+
     // Colors based on type
     if (type === 'fire') {
       this.color = '#ff4500';
@@ -25,6 +28,11 @@ class CerberusHead {
   }
 
   update() {
+    // Decrease attack delay timer
+    if (this.attackDelay > 0) {
+      this.attackDelay--;
+    }
+
     if (this.shootCooldown > 0) {
       this.shootCooldown--;
     }
@@ -33,6 +41,9 @@ class CerberusHead {
   shoot(player) {
     // Don't shoot if dead
     if (this.isDead()) return [];
+
+    // Can't attack until delay expires
+    if (this.attackDelay > 0) return [];
 
     if (this.shootCooldown === 0) {
       this.shootCooldown = this.shootDelay;

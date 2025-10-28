@@ -9,7 +9,7 @@
     body {
       margin: 0;
       padding: 0;
-      background: #1a1a2e;
+      background: #2f3648;
       display: flex;
       justify-content: center;
       align-items: flex-start;
@@ -22,10 +22,10 @@
       position: relative;
       width: 700px;
       height: 700px;
-      background: #0f0f1e;
-      border: 3px solid #16213e;
+      background: #222838;
+      border: 3px solid #3a4558;
       border-top: none;
-      box-shadow: 0 0 30px rgba(77, 171, 247, 0.3);
+      box-shadow: 0 0 20px rgba(139, 201, 255, 0.2);
       margin-top: 0;
     }
 
@@ -327,7 +327,7 @@
       left: 0;
       width: 700px;
       height: 700px;
-      background: #0f0f1e;
+      background: #262c3d;
       overflow-y: auto;
       overflow-x: hidden;
       padding: 30px;
@@ -516,12 +516,12 @@
           </div>
           <div class="ability-box" data-ability="shield" data-type="healing">
             <h3>Shield</h3>
-            <p>Set HP to 5% + invincible 5s (auto-save)</p>
+            <p>Set HP to 5% + invincible 5s auto activate when health drops below 1hp</p>
             <span class="ability-status">💰 100</span>
           </div>
           <div class="ability-box" data-ability="vampire" data-type="healing">
             <h3>Vampire</h3>
-            <p>Lifesteal 50% for 6s</p>
+            <p>Lifesteal 50% for 6s maximuim heal cap 20% hp per sec</p>
             <span class="ability-status">💰 100</span>
           </div>
         </div>
@@ -538,12 +538,12 @@
           </div>
           <div class="ability-box" data-ability="bulletStorm" data-type="special">
             <h3>Bullet Storm</h3>
-            <p>Fire 12 bouncing bullets</p>
+            <p>Fire 12 bouncing bullets that home towards enemies</p>
             <span class="ability-status">💰 100</span>
           </div>
           <div class="ability-box" data-ability="disarm" data-type="special">
             <h3>Disarm</h3>
-            <p>Clear, silence + vulnerable 5s</p>
+            <p>Clear, silence + damage boost 5s</p>
             <span class="ability-status">💰 100</span>
           </div>
         </div>
@@ -565,7 +565,7 @@
           </div>
           <div class="ability-box" data-ability="revenge" data-type="passive">
             <h3>Revenge</h3>
-            <p>Deal 3-10x damage back (scales)</p>
+            <p>Deal 3-15x damage back (scales with damage stat upgrade)</p>
             <span class="ability-status">💰 100</span>
           </div>
         </div>

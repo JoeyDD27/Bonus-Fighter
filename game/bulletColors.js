@@ -3,23 +3,23 @@
 
 function getBulletColor(damage, isPlayerBullet = false) {
   if (isPlayerBullet) {
-    // Player bullets always blue
-    return '#74c0fc';
+    // Player bullets
+    return '#7ec4f2';
   }
 
   // Enemy bullet colors based on damage
   if (damage <= 8) {
-    return '#ffb3d9';  // Light pink (low damage)
+    return '#f0b6c8';  // Soft pink (low damage)
   } else if (damage <= 10) {
-    return '#ff8787';  // Pink-red (low-medium damage)
+    return '#f58b8b';  // Soft coral (low-medium damage)
   } else if (damage <= 12) {
-    return '#ff6b6b';  // Medium red (medium damage)
+    return '#ef7676';  // Soft red (medium damage)
   } else if (damage <= 15) {
-    return '#ff4444';  // Bright red (medium-high damage)
+    return '#e06b6b';  // Medium red (medium-high damage)
   } else if (damage <= 20) {
-    return '#e03131';  // Dark red (high damage)
+    return '#d45a5a';  // Dark red (high damage)
   } else {
-    return '#c92a2a';  // Very dark red (very high damage)
+    return '#c44e4e';  // Very dark red (very high damage)
   }
 }
 

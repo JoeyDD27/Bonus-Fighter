@@ -483,6 +483,14 @@ class BossFactory {
               this.bulletSize, '#ff6b6b', 10, false
             ));
           }
+
+          // Add 1 aimbot bullet
+          const angleToPlayer = Math.atan2(player.y - this.y, player.x - this.x);
+          bullets.push(new Projectile(
+            this.x, this.y, angleToPlayer, 8,
+            this.bulletSize + 2, '#ff4444', 15, true
+          ));
+
           return bullets;
         },
         updateBehavior: function (player, w, h) {
@@ -718,7 +726,7 @@ class BossFactory {
         shootDelay: 60,  // Slower for dodging (was 50)
         maxPhases: 3,
         shootPattern: function (player) {
-          // Ice shards - dodgeable bullet hell
+          // Ice shards - dodgeable bullet hell with frozen effect
           const bullets = [];
           const dx = player.x - this.x;
           const dy = player.y - this.y;
@@ -727,7 +735,10 @@ class BossFactory {
           const count = this.phase === 1 ? 7 : this.phase === 2 ? 10 : 13;  // Reduced density
           for (let i = 0; i < count; i++) {
             const spread = (i - count / 2) * 0.25;  // Wider gaps for dodging (was 0.15)
-            bullets.push(new Projectile(this.x, this.y, angle + spread, 8, 14, '#00ffff', 14, false));  // Slower (was 10)
+            const bullet = new Projectile(this.x, this.y, angle + spread, 8, 14, '#87ceeb', 14, false, true);  // Cold ice blue color with forceColor
+            bullet.slow = true;  // Apply slow effect
+            bullet.slowDuration = 120;  // 2 seconds at 60 FPS
+            bullets.push(bullet);
           }
           return bullets;
         },

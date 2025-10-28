@@ -12,7 +12,7 @@ class StorageManager {
         levelsWithoutDamage: 0,  // For Untouchable quests
         consecutiveWins: 0  // For Survivor quest
       },
-      coins: 0,  // Start with 0 coins - earn through gameplay!
+      coins: 100000,  // Start with 0 coins - earn through gameplay!
       ownedAbilities: [],  // Array of owned ability IDs
       equippedAbilities: {
         healing: null,  // 'healthPotion', 'shield', 'vampire'
@@ -38,7 +38,7 @@ class StorageManager {
     // Initialize all 42 levels
     for (let i = 1; i <= 42; i++) {
       this.defaultData.levels[i] = {
-        unlocked: i === 1,  // Only level 1 unlocked at start
+        unlocked: true,  // Only level 1 unlocked at start
         completed: false,  // No levels pre-beaten
         bestTime: null,
         hasStarReward: false,

@@ -43,6 +43,9 @@ class Boss {
     this.godMode = config.godMode || false;
     this.godModePhase = 1;  // Track GOD MODE sub-phases
     this.petrifyTimer = 0;
+
+    // 1 second attack delay (60 frames at 60 FPS)
+    this.attackDelay = 60;
   }
 
   generateRedShade(level) {
@@ -53,6 +56,11 @@ class Boss {
 
   update(player, canvasWidth, canvasHeight) {
     this.behaviorTimer++;
+
+    // Decrease attack delay timer
+    if (this.attackDelay > 0) {
+      this.attackDelay--;
+    }
 
     // Update behavior
     this.updateBehavior(player, canvasWidth, canvasHeight);
@@ -85,6 +93,11 @@ class Boss {
   }
 
   shoot(player) {
+    // Boss can't attack until attack delay expires
+    if (this.attackDelay > 0) {
+      return [];
+    }
+
     if (this.shootCooldown === 0) {
       this.shootCooldown = this.shootDelay;
       return this.shootPattern(player);
