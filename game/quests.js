@@ -28,7 +28,7 @@ class QuestManager {
         id: 'bossSlayer',
         name: 'Boss Slayer',
         description: 'Complete all 42 levels',
-        reward: 500,
+        reward: 10000,
         check: (data) => Object.values(data.levels).filter(l => l.completed).length >= 42
       },
 
@@ -44,7 +44,7 @@ class QuestManager {
         id: 'notEvenClose',
         name: 'Not Even Close',
         description: 'Complete all 42 levels without going below 50% HP',
-        reward: 800,
+        reward: 100000,
         check: (data) => {
           for (let i = 1; i <= 42; i++) {
             if (!data.levels[i]?.above50PercentCleared) return false;
@@ -57,7 +57,7 @@ class QuestManager {
         id: 'rich',
         name: 'Rich',
         description: 'Collect 500 total coins',
-        reward: 100,
+        reward: 200,
         check: (data) => data.coins >= 500
       },
 
@@ -65,16 +65,16 @@ class QuestManager {
         id: 'tank',
         name: 'Tank',
         description: 'Win with full health upgrades',
-        reward: 80,
-        check: (data) => data.upgrades && data.upgrades.maxHealth >= 5
+        reward: 500,
+        check: (data) => data.upgrades && data.upgrades.maxHealth >= 11
       },
 
       glassCannon: {
         id: 'glassCannon',
         name: 'Glass Cannon',
         description: 'Win with full damage upgrades',
-        reward: 80,
-        check: (data) => data.upgrades && data.upgrades.bulletDamage >= 5
+        reward: 500,
+        check: (data) => data.upgrades && data.upgrades.bulletDamage >= 11
       },
 
       // Star Collector Series
@@ -121,7 +121,7 @@ class QuestManager {
         id: 'untouchable2',
         name: 'Untouchable II',
         description: 'Beat 10 different levels without damage',
-        reward: 80,
+        reward: 500,
         check: (data) => {
           let count = 0;
           for (let i = 1; i <= 30; i++) {
@@ -135,7 +135,7 @@ class QuestManager {
         id: 'untouchable3',
         name: 'Untouchable III',
         description: 'Beat 15 different levels without damage',
-        reward: 150,
+        reward: 1050,
         check: (data) => {
           let count = 0;
           for (let i = 1; i <= 30; i++) {
@@ -149,7 +149,7 @@ class QuestManager {
         id: 'untouchable4',
         name: 'Untouchable IV',
         description: 'Beat 25 different levels without damage',
-        reward: 300,
+        reward: 1400,
         check: (data) => {
           let count = 0;
           for (let i = 1; i <= 30; i++) {
@@ -163,7 +163,7 @@ class QuestManager {
         id: 'untdouchable5',
         name: 'Untouchable V',
         description: 'Beat all 42 levels without damage',
-        reward: 800,
+        reward: 99999999,
         check: (data) => {
           let count = 0;
           for (let i = 1; i <= 42; i++) {
@@ -177,7 +177,7 @@ class QuestManager {
         id: 'untouchable6',
         name: 'Untouchable VI',
         description: 'Beat levels 35-42 without damage',
-        reward: 1000,
+        reward: 99900,
         check: (data) => {
           for (let i = 35; i <= 42; i++) {
             if (!data.levels[i]?.noDamageCleared) return false;
@@ -199,7 +199,7 @@ class QuestManager {
         id: 'speedDemon2',
         name: 'Speed Demon II',
         description: 'Beat 10 different levels in under 45s',
-        reward: 100,
+        reward: 300,
         check: (data) => this.countFastTimes(data, 45) >= 10
       },
 
@@ -207,19 +207,19 @@ class QuestManager {
         id: 'speedDemon3',
         name: 'Speed Demon III',
         description: 'Beat 20 different levels in under 50s',
-        reward: 200,
+        reward: 700,
         check: (data) => this.countFastTimes(data, 50) >= 20
       },
 
       speedDemon4: {
         id: 'speedDemon4',
         name: 'Speed Demon IV',
-        description: 'Beat all levels 35-42 in under 60s',
-        reward: 600,
+        description: 'Beat all levels 35-42 in under 100s',
+        reward: 99999999,
         check: (data) => {
           for (let i = 35; i <= 42; i++) {
             const time = data.levels[i]?.bestTime;
-            if (!time || time >= 60) return false;
+            if (!time || time >= 100) return false;
           }
           return true;
         }
@@ -297,7 +297,7 @@ class QuestManager {
         id: 'sharpshooter6',
         name: 'Sharpshooter VI',
         description: 'Get 100% accuracy in all levels 35-42',
-        reward: 1000,
+        reward: 99999,
         check: (data) => {
           for (let i = 35; i <= 42; i++) {
             if (!data.levels[i]?.bestAccuracy || data.levels[i].bestAccuracy < 100) return false;
