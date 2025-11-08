@@ -362,21 +362,33 @@ class GameEngine {
       this.htmlMenus.showScreen('canvas');
     }
 
+    // Clear all damage sources FIRST before creating new entities
+    // This prevents old bullets/abilities from damaging the new boss
+    this.playerBullets = [];
+    this.enemyBullets = [];
+    this.ghosts = [];  // Clear ghost minions
+    this.firePools = [];  // Clear fire pools
+    this.cerberusHeads = [];  // Clear old cerberus heads
+
+    // Reset ability cooldowns and durations BEFORE creating boss
+    this.abilityManager.cooldowns = { healing: 0, special: 0 };
+    this.abilityManager.activeEffects = {
+      shield: { active: false, timer: 0 },
+      vampire: { active: false, timer: 0 },
+      laser: { active: false, timer: 0 },
+      disarm: { active: false, timer: 0 },
+      vulnerability: { active: false, timer: 0 }
+    };
+    this.abilityManager.comboCounter = 0;
+
     // Create player with stat upgrades + equipped abilities
     const upgrades = this.gameData.upgrades || { maxHealth: 0, bulletDamage: 0 };
     const equippedAbilities = this.gameData.equippedAbilities || {};
     this.player = new Player(this.width / 2, this.height - 100, upgrades, equippedAbilities);
     this.startingHealth = this.player.health;
 
-    // Create boss with scaling based on player upgrades
+    // Create boss with scaling based on player upgrades (AFTER clearing damage sources)
     this.boss = BossFactory.createBoss(level, upgrades);
-
-    // Clear bullets, ghosts, fire pools, and cerberus heads
-    this.playerBullets = [];
-    this.enemyBullets = [];
-    this.ghosts = [];  // Clear ghost minions
-    this.firePools = [];  // Clear fire pools
-    this.cerberusHeads = [];  // Clear old cerberus heads
 
     // Spawn Cerberus heads if this is Cerberus (level 38)
     if (this.boss.multiEntity && level === 38) {
@@ -393,17 +405,6 @@ class GameEngine {
       shotsFired: 0,
       shotsHit: 0
     };
-
-    // Reset ability cooldowns and durations
-    this.abilityManager.cooldowns = { healing: 0, special: 0 };
-    this.abilityManager.activeEffects = {
-      shield: { active: false, timer: 0 },
-      vampire: { active: false, timer: 0 },
-      laser: { active: false, timer: 0 },
-      disarm: { active: false, timer: 0 },
-      vulnerability: { active: false, timer: 0 }
-    };
-    this.abilityManager.comboCounter = 0;
 
     // Reset controls
     this.controls.reset();
@@ -988,6 +989,22 @@ class GameEngine {
     const bossActuallyDead = this.boss && this.boss.isDead() && allHeadsDead;
 
     if (bossActuallyDead) {
+      // Immediately clear all damage sources to prevent overdamage carryover
+      this.playerBullets = [];
+      this.enemyBullets = [];
+      this.ghosts = [];
+      this.cerberusHeads = [];
+      this.firePools = [];
+
+      // Reset all active ability effects (especially laser)
+      this.abilityManager.activeEffects = {
+        shield: { active: false, timer: 0 },
+        vampire: { active: false, timer: 0 },
+        laser: { active: false, timer: 0 },
+        disarm: { active: false, timer: 0 },
+        vulnerability: { active: false, timer: 0 }
+      };
+
       if (this.isGrindMode) {
         // Remove defeated boss from grind bosses
         const index = this.grindBosses.indexOf(this.boss);
@@ -1006,12 +1023,14 @@ class GameEngine {
 
           this.state = 'GRIND_BREAK';
           this.grindBreakTimer = 180; // 3 seconds
+          return; // Stop update loop to prevent further damage
         } else {
           // Switch to next boss in wave
           this.boss = this.grindBosses[0];
         }
       } else {
         this.onVictory();
+        return; // Stop update loop to prevent further damage
       }
     }
 
@@ -1046,8 +1065,21 @@ class GameEngine {
   async onVictory() {
     this.state = 'VICTORY';
 
-    // Clear all fire pools on victory
+    // Clear all damage sources and entities as safety measure
+    this.playerBullets = [];
+    this.enemyBullets = [];
+    this.ghosts = [];
+    this.cerberusHeads = [];
     this.firePools = [];
+
+    // Reset all active ability effects (especially laser to prevent carryover)
+    this.abilityManager.activeEffects = {
+      shield: { active: false, timer: 0 },
+      vampire: { active: false, timer: 0 },
+      laser: { active: false, timer: 0 },
+      disarm: { active: false, timer: 0 },
+      vulnerability: { active: false, timer: 0 }
+    };
 
     // Track if completed without damage
     const noDamageTaken = (this.player.health >= this.startingHealth);
